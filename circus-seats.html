@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎭 ワールドドリームサーカス 座席管理</title>
+<title>せきとりくん KTNワールドドリームサーカス座席管理</title>
 <script src="./msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -194,8 +194,8 @@ header{
 <!-- ログイン画面 -->
 <div id="login-screen">
   <div class="login-logo">🎪</div>
-  <div class="login-title">ワールドドリームサーカス</div>
-  <div class="login-sub">座席管理システム v.0708.1123</div>
+  <div class="login-title">せきとりくん</div>
+  <div class="login-sub">KTNサーカス座席管理システム v.0708.1545</div>
   <button id="btn-login" onclick="login()">Microsoft アカウントでログイン</button>
 </div>
 
@@ -204,7 +204,7 @@ header{
   <header>
     <div class="hdr-left">
       <span class="hdr-logo">🎭</span>
-      <span class="hdr-title">ワールドドリームサーカス　座席管理</span>
+      <span class="hdr-title">せきとりくん</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -274,7 +274,7 @@ header{
   </div>
 </div>
 
-<div id="loading">読み込み中...</div>
+<div id="loading">読み込んどるけん、まっとかんね！</div>
 
 <script>
 // ─────────────────────────────────────────────
@@ -369,7 +369,7 @@ let staffList=[];
 async function login(){
   const btn = document.getElementById('btn-login');
   const orig = btn.textContent;
-  btn.textContent = '処理中...';
+  btn.textContent = '処理中ばい...';
   btn.disabled = true;
   try{
     const inst = await getMsal();
@@ -401,7 +401,11 @@ async function getToken(){
 
 async function graph(url,method='GET',body=null){
   const tok=await getToken();
-  const opt={method,headers:{Authorization:`Bearer ${tok}`,'Content-Type':'application/json'}};
+  const opt={method,headers:{
+    Authorization:`Bearer ${tok}`,
+    'Content-Type':'application/json',
+    'Prefer':'HonorNonIndexedQueriesWarningMayFailRandomly'
+  }};
   if(body) opt.body=JSON.stringify(body);
   const res=await fetch(url,opt);
   if(!res.ok){const t=await res.text();throw new Error(`GraphAPI ${res.status}: ${t}`)}
@@ -433,8 +437,20 @@ async function loadColMap(){
 
 async function loadStaff(){
   const res=await graph(`${LIST_URL}/columns`);
-  const col=res.value.find(c=>c.displayName==='登録者');
-  if(col?.choice?.choices) staffList=col.choice.choices;
+  // displayName または name で「登録者」列を探す
+  const col=res.value.find(c=>
+    c.displayName==='登録者' ||
+    c.name==='登録者' ||
+    (c.displayName && c.displayName.includes('登録'))
+  );
+  if(col){
+    // choice列の構造はAPIバージョンにより異なる
+    const choices = col?.choice?.choices || col?.choices || [];
+    staffList = choices;
+    console.log('登録者の選択肢:', staffList);
+  } else {
+    console.warn('「登録者」列が見つかりませんでした。列一覧:', res.value.map(c=>c.displayName));
+  }
 }
 
 function buildShowSel(){
@@ -446,6 +462,16 @@ function buildShowSel(){
 }
 function buildStaffSel(){
   const sel=document.getElementById('sel-staff');
+  if(staffList.length===0){
+    // 手動入力に切り替え
+    const inp=document.createElement('input');
+    inp.type='text'; inp.id='sel-staff';
+    inp.placeholder='登録者名を入力';
+    inp.style.cssText='width:100%;padding:10px 13px;border:2px solid #e0e0e0;border-radius:8px;font-size:.95rem;font-family:inherit;';
+    sel.parentNode.replaceChild(inp,sel);
+    console.warn('登録者の選択肢が取得できなかったため手動入力に切り替えました');
+    return;
+  }
   for(const n of staffList){
     const o=document.createElement('option');
     o.value=n; o.textContent=n; sel.appendChild(o);
@@ -463,7 +489,7 @@ async function onShowChange(){
 
 async function loadSeatData(){
   if(!showId) return;
-  showLoad('座席データを読み込み中...');
+  showLoad('座席データを読み込み中ばい...');
   try{
     const fld=colMap['公演ID']||'公演ID';
     const url=`${LIST_URL}/items?$expand=fields&$filter=fields/${fld} eq '${showId}'&$top=500`;
@@ -633,7 +659,7 @@ async function saveSeat(){
 }
 
 async function deleteSeat(){
-  if(!confirm(`${selSeat.sid} の予約を取り消しますか？`)) return;
+  if(!confirm(`${selSeat.sid} の予約を取り消しますか？よかとね？`)) return;
   const info=soldMap[selSeat.sid];
   if(!info) return;
   showLoad('取り消し中...');
