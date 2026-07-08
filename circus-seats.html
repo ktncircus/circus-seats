@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎭 ワールドドリームサーカス 座席管理</title>
+<title>せきとりさん サーカス座席管理</title>
 <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -194,8 +194,8 @@ header{
 <!-- ログイン画面 -->
 <div id="login-screen">
   <div class="login-logo">🎪</div>
-  <div class="login-title">ワールドドリームサーカス</div>
-  <div class="login-sub">座席管理システム</div>
+  <div class="login-title">せきとりさん</div>
+  <div class="login-sub">KTNサーカス座席管理システム</div>
   <button id="btn-login" onclick="login()">Microsoft アカウントでログイン</button>
 </div>
 
@@ -204,7 +204,7 @@ header{
   <header>
     <div class="hdr-left">
       <span class="hdr-logo">🎭</span>
-      <span class="hdr-title">ワールドドリームサーカス　座席管理</span>
+      <span class="hdr-title">せきとりさん - ワールドドリームサーカス座席管理システム</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -274,7 +274,7 @@ header{
   </div>
 </div>
 
-<div id="loading">読み込み中...</div>
+<div id="loading">ちょっとまっとかんね！</div>
 
 <script>
 // ─────────────────────────────────────────────
@@ -373,7 +373,7 @@ async function login(){
     account=r.account; onLoggedIn();
   }catch(e){
     if(!e.message.includes('user_cancelled'))
-      alert('ログインエラー: '+e.message);
+      alert('ログインエラーばい！: '+e.message);
   }
 }
 function logout(){msal_.logoutPopup({account})}
@@ -408,7 +408,7 @@ async function onLoggedIn(){
     await loadStaff();
     buildShowSel();
     buildStaffSel();
-  }catch(e){alert('初期化エラー: '+e.message);}
+  }catch(e){alert('やばい！初期化エラー: '+e.message);}
   finally{hideLoad()}
 }
 
@@ -450,7 +450,7 @@ async function onShowChange(){
 
 async function loadSeatData(){
   if(!showId) return;
-  showLoad('座席データを読み込み中...');
+  showLoad('座席データば読み込みよるとけど...');
   try{
     const fld=colMap['公演ID']||'公演ID';
     const url=`${LIST_URL}/items?$expand=fields&$filter=fields/${fld} eq '${showId}'&$top=500`;
@@ -467,7 +467,7 @@ async function loadSeatData(){
       };
     }
     renderMap(); updateStats();
-  }catch(e){alert('読み込みエラー: '+e.message);}
+  }catch(e){alert('読み込みエラーばい！あっちゃらー: '+e.message);}
   finally{hideLoad()}
 }
 
@@ -620,7 +620,7 @@ async function saveSeat(){
 }
 
 async function deleteSeat(){
-  if(!confirm(`${selSeat.sid} の予約を取り消しますか？`)) return;
+  if(!confirm(`${selSeat.sid} の予約を取り消しますか？本当によかとね？`)) return;
   const info=soldMap[selSeat.sid];
   if(!info) return;
   showLoad('取り消し中...');
