@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🎭 ワールドドリームサーカス 座席管理</title>
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<script src="./msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Meiryo UI','メイリオ',sans-serif;background:#f0f2f5;color:#333;min-height:100vh}
@@ -195,7 +195,7 @@ header{
 <div id="login-screen">
   <div class="login-logo">🎪</div>
   <div class="login-title">ワールドドリームサーカス</div>
-  <div class="login-sub">座席管理システム v0708.1116</div>
+  <div class="login-sub">座席管理システム v.0708.1123</div>
   <button id="btn-login" onclick="login()">Microsoft アカウントでログイン</button>
 </div>
 
@@ -367,13 +367,25 @@ let staffList=[];
 //  認証
 // ─────────────────────────────────────────────
 async function login(){
+  const btn = document.getElementById('btn-login');
+  const orig = btn.textContent;
+  btn.textContent = '処理中...';
+  btn.disabled = true;
   try{
     const inst = await getMsal();
-    const r=await inst.loginPopup({scopes:SCOPES});
-    account=r.account; onLoggedIn();
-  }catch(e){
-    if(!e.message.includes('user_cancelled'))
-      alert('ログインエラー: '+e.message);
+    const r = await inst.loginPopup({scopes:SCOPES});
+    account = r.account;
+    onLoggedIn();
+  } catch(e) {
+    btn.textContent = orig;
+    btn.disabled = false;
+    if (e.message && e.message.includes('popup_window_error')) {
+      alert('ポップアップがブロックされました。\nブラウザのアドレスバー右側にあるポップアップブロックのアイコンをクリックして許可してください。');
+    } else if (e.message && e.message.includes('user_cancelled')) {
+      // キャンセルは何もしない
+    } else {
+      alert('エラー内容: ' + (e.message || JSON.stringify(e)));
+    }
   }
 }
 function logout(){msal_.logoutPopup({account})}
