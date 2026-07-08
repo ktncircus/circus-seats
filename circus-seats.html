@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🎭 ワールドドリームサーカス 座席管理</title>
-<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/dist/msal-browser.min.js" crossorigin="anonymous"></script>
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Meiryo UI','メイリオ',sans-serif;background:#f0f2f5;color:#333;min-height:100vh}
@@ -650,12 +650,18 @@ let msal_;
 // ライブラリ完全読み込み後に初期化
 window.addEventListener('load', async () => {
   const btn = document.getElementById('btn-login');
+  // MSALが読み込まれるまで最大5秒待つ
+  let waited = 0;
+  while (typeof msal === 'undefined' && waited < 50) {
+    await new Promise(r => setTimeout(r, 100));
+    waited++;
+  }
+  if (typeof msal === 'undefined') {
+    btn.textContent = '読み込みエラー: ページを更新してください';
+    btn.style.background = '#999';
+    return;
+  }
   try {
-    if (typeof msal === 'undefined') {
-      btn.textContent = '読み込みエラー: ページを更新してください';
-      btn.style.background = '#ccc';
-      return;
-    }
     msal_ = new msal.PublicClientApplication(msalCfg);
     await msal_.initialize();
     try {
