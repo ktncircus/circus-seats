@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🎭 ワールドドリームサーカス 座席管理</title>
-<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/dist/msal-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/dist/msal-browser.min.js" crossorigin="anonymous"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Meiryo UI','メイリオ',sans-serif;background:#f0f2f5;color:#333;min-height:100vh}
@@ -296,7 +296,6 @@ const msalCfg = {
   },
   cache:{cacheLocation:'sessionStorage'}
 };
-let msal_;
 const SCOPES = ['https://graph.microsoft.com/Sites.ReadWrite.All'];
 
 // ─────────────────────────────────────────────
@@ -645,16 +644,32 @@ document.getElementById('modal-overlay').addEventListener('click',e=>{
 // ─────────────────────────────────────────────
 //  起動
 // ─────────────────────────────────────────────
-(async()=>{
-  msal_ = new msal.PublicClientApplication(msalCfg);
-  await msal_.initialize();
-  try{
-    const r=await msal_.handleRedirectPromise();
-    if(r){account=r.account;onLoggedIn();return}
-  }catch(e){console.warn(e)}
-  const acc=msal_.getAllAccounts();
-  if(acc.length>0){account=acc[0];onLoggedIn()}
-})();
+// msal_ をグローバルで宣言
+let msal_;
+
+// ライブラリ完全読み込み後に初期化
+window.addEventListener('load', async () => {
+  const btn = document.getElementById('btn-login');
+  try {
+    if (typeof msal === 'undefined') {
+      btn.textContent = '読み込みエラー: ページを更新してください';
+      btn.style.background = '#ccc';
+      return;
+    }
+    msal_ = new msal.PublicClientApplication(msalCfg);
+    await msal_.initialize();
+    try {
+      const r = await msal_.handleRedirectPromise();
+      if (r) { account = r.account; onLoggedIn(); return; }
+    } catch(e) { console.warn('redirect:', e); }
+    const acc = msal_.getAllAccounts();
+    if (acc.length > 0) { account = acc[0]; onLoggedIn(); }
+  } catch(e) {
+    console.error('MSAL初期化エラー:', e);
+    btn.textContent = '初期化エラー: ' + e.message;
+    btn.style.background = '#c00';
+  }
+});
 </script>
 </body>
 </html>
