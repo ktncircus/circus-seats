@@ -280,7 +280,7 @@ header{
 // ─────────────────────────────────────────────
 //  設定
 // ─────────────────────────────────────────────
-const CLIENT_ID  = '6fb51050-1141-446f-bbaa-917be931f61f';
+const CLIENT_ID  = '83a913fd-37c9-4b45-993a-c8777f55c0b2';
 const TENANT_ID  = '0bd1b308-c26d-49bb-acbd-86dd168984f6';
 const SP_HOST    = 'ktno365.sharepoint.com';
 const SP_SITE    = 'circus2026';
@@ -292,7 +292,7 @@ const msalCfg = {
   auth:{
     clientId: CLIENT_ID,
     authority:`https://login.microsoftonline.com/${TENANT_ID}`,
-    redirectUri: window.location.origin + window.location.pathname,
+    redirectUri: "https://ktncircus.github.io/circus-seats/circus-seats.html",
   },
   cache:{cacheLocation:'sessionStorage'}
 };
