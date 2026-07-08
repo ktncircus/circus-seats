@@ -368,7 +368,8 @@ let staffList=[];
 // ─────────────────────────────────────────────
 async function login(){
   try{
-    const r=await msal_.loginPopup({scopes:SCOPES});
+    const inst = await getMsal();
+    const r=await inst.loginPopup({scopes:SCOPES});
     account=r.account; onLoggedIn();
   }catch(e){
     if(!e.message.includes('user_cancelled'))
@@ -378,10 +379,11 @@ async function login(){
 function logout(){msal_.logoutPopup({account})}
 
 async function getToken(){
+  const inst = await getMsal();
   try{
-    return (await msal_.acquireTokenSilent({scopes:SCOPES,account})).accessToken;
+    return (await inst.acquireTokenSilent({scopes:SCOPES,account})).accessToken;
   }catch{
-    return (await msal_.acquireTokenPopup({scopes:SCOPES})).accessToken;
+    return (await inst.acquireTokenPopup({scopes:SCOPES})).accessToken;
   }
 }
 
@@ -644,37 +646,35 @@ document.getElementById('modal-overlay').addEventListener('click',e=>{
 // ─────────────────────────────────────────────
 //  起動
 // ─────────────────────────────────────────────
-// msal_ をグローバルで宣言
+// msal_ を遅延初期化（ボタン押下時に初めて生成）
 let msal_;
 
-// ライブラリ完全読み込み後に初期化
-window.addEventListener('load', async () => {
-  const btn = document.getElementById('btn-login');
-  // MSALが読み込まれるまで最大5秒待つ
-  let waited = 0;
-  while (typeof msal === 'undefined' && waited < 50) {
+async function getMsal() {
+  if (msal_) return msal_;
+  let tries = 0;
+  while (typeof msal === 'undefined' && tries < 50) {
     await new Promise(r => setTimeout(r, 100));
-    waited++;
+    tries++;
   }
   if (typeof msal === 'undefined') {
-    btn.textContent = '読み込みエラー: ページを更新してください';
-    btn.style.background = '#999';
-    return;
+    throw new Error('MSALライブラリが読み込めませんでした。ページを更新してください。');
   }
+  msal_ = new msal.PublicClientApplication(msalCfg);
+  await msal_.initialize();
+  return msal_;
+}
+
+// すでにログイン済みか確認
+window.addEventListener('load', async () => {
   try {
-    msal_ = new msal.PublicClientApplication(msalCfg);
-    await msal_.initialize();
+    const inst = await getMsal();
     try {
-      const r = await msal_.handleRedirectPromise();
+      const r = await inst.handleRedirectPromise();
       if (r) { account = r.account; onLoggedIn(); return; }
-    } catch(e) { console.warn('redirect:', e); }
-    const acc = msal_.getAllAccounts();
+    } catch(e) { console.warn(e); }
+    const acc = inst.getAllAccounts();
     if (acc.length > 0) { account = acc[0]; onLoggedIn(); }
-  } catch(e) {
-    console.error('MSAL初期化エラー:', e);
-    btn.textContent = '初期化エラー: ' + e.message;
-    btn.style.background = '#c00';
-  }
+  } catch(e) { console.warn('自動ログイン確認失敗:', e.message); }
 });
 </script>
 </body>
