@@ -119,85 +119,6 @@ header{
 .seat.avail-box{background:#FFF3E0;color:#BF360C}
 .seat.sold     {background:#E8F5E9;color:#1B5E20;font-size:0.58rem;cursor:pointer}
 .seat.ng       {background:#F5F5F5;color:#BDBDBD;cursor:default;border-color:#EEEEEE}
-.seat.selected {background:#E3F2FD;color:#0D47A1;border:2px solid #1565C0;font-weight:bold;transform:scale(1.1);z-index:10;position:relative;}
-
-/* タブナビ */
-#tab-nav {
-  background:white;border-bottom:2px solid #e8eaf0;
-  display:flex;padding:0 20px;
-}
-.tab-btn {
-  padding:12px 24px;border:none;background:transparent;
-  font-family:inherit;font-size:0.92rem;cursor:pointer;
-  color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;
-  transition:color .15s,border-color .15s;
-}
-.tab-btn.active{color:#1a2f5a;border-bottom-color:#1a2f5a;font-weight:bold}
-.tab-btn:hover:not(.active){color:#2a4a8a}
-
-/* 検索パネル */
-#search-panel{display:none;padding:24px 20px}
-#search-panel.open{display:block}
-#seat-map-panel{display:block}
-
-.search-box {
-  background:white;border-radius:12px;padding:20px;
-  box-shadow:0 1px 6px rgba(0,0,0,0.08);margin-bottom:20px;
-  display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;
-}
-.search-box .form-group{margin:0;flex:1;min-width:180px}
-.search-box label{display:block;font-size:0.82rem;font-weight:bold;color:#444;margin-bottom:5px}
-.search-box input{
-  width:100%;padding:10px 13px;border:2px solid #e0e0e0;
-  border-radius:8px;font-size:0.95rem;font-family:inherit;
-}
-.search-box input:focus{outline:none;border-color:#2a4a8a}
-#btn-search {
-  background:#1a2f5a;color:white;border:none;padding:10px 28px;
-  border-radius:8px;cursor:pointer;font-family:inherit;font-size:0.95rem;
-  white-space:nowrap;
-}
-#btn-search:hover{background:#2a4a8a}
-
-.search-results{background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,0.08)}
-.search-results table{width:100%;border-collapse:collapse}
-.search-results th{
-  background:#1a2f5a;color:white;padding:10px 14px;
-  font-size:0.82rem;text-align:left;
-}
-.search-results td{
-  padding:10px 14px;font-size:0.88rem;border-bottom:1px solid #f0f0f0;
-}
-.search-results tr:last-child td{border-bottom:none}
-.search-results tr:hover td{background:#f8f9ff}
-.no-result{padding:32px;text-align:center;color:#aaa;font-size:0.9rem}
-.badge-ss {background:#FFF8DC;color:#8B6914;padding:2px 8px;border-radius:10px;font-size:0.78rem}
-.badge-s  {background:#F0FFF0;color:#2E7D32;padding:2px 8px;border-radius:10px;font-size:0.78rem}
-.badge-box{background:#FFF3E0;color:#E65100;padding:2px 8px;border-radius:10px;font-size:0.78rem}
-
-/* 複数選択バー */
-#sel-bar {
-  display:none;position:fixed;bottom:0;left:0;right:0;
-  background:linear-gradient(135deg,#1a2f5a,#2a4a8a);
-  color:white;padding:14px 24px;
-  display:none;align-items:center;justify-content:space-between;
-  box-shadow:0 -4px 20px rgba(0,0,0,0.3);z-index:200;
-}
-#sel-bar.open{display:flex}
-#sel-bar-info{font-size:1rem;font-weight:bold}
-#sel-bar-seats{font-size:0.8rem;color:#8aa4d4;margin-top:3px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sel-bar-btns{display:flex;gap:10px;flex-shrink:0}
-#btn-sel-register{
-  background:#FFD700;color:#1a2f5a;border:none;
-  padding:10px 24px;border-radius:8px;font-size:0.95rem;
-  font-weight:bold;cursor:pointer;font-family:inherit;
-}
-#btn-sel-register:hover{background:#FFC000}
-#btn-sel-clear{
-  background:transparent;color:white;border:1px solid rgba(255,255,255,0.4);
-  padding:10px 18px;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit;
-}
-#btn-sel-clear:hover{background:rgba(255,255,255,0.1)}
 
 /* ── モーダル ── */
 #modal-overlay{
@@ -274,8 +195,8 @@ header{
 <div id="login-screen">
   <div class="login-logo">🎪</div>
   <div class="login-title">せきとりくん</div>
-  <div class="login-sub">KTN座席管理アプリ Ver.0709.0937</div>
-  <button id="btn-login" onclick="login()">KTN統合IDでログイン</button>
+  <div class="login-sub">KTN座席管理システム v.0708.1655</div>
+  <button id="btn-login" onclick="login()">KTN Office365でログイン</button>
 </div>
 
 <!-- アプリ画面 -->
@@ -283,7 +204,7 @@ header{
   <header>
     <div class="hdr-left">
       <span class="hdr-logo">🎭</span>
-      <span class="hdr-title">せきとりくん（試験運用中）Ver.0709</span>
+      <span class="hdr-title">せきとりくん - サーカス座席管理（テスト中）</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -305,46 +226,10 @@ header{
     </div>
   </div>
 
-  <!-- タブナビ -->
-  <div id="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('map')">🗺 座席マップ</button>
-    <button class="tab-btn" onclick="switchTab('search')">🔍 検索</button>
-  </div>
-
-  <!-- 検索パネル -->
-  <div id="search-panel">
-    <div class="search-box">
-      <div class="form-group">
-        <label>購入者名で検索</label>
-        <input type="text" id="q-name" placeholder="例：山田" onkeydown="if(event.key==='Enter')doSearch()">
-      </div>
-      <div class="form-group">
-        <label>電話番号で検索</label>
-        <input type="tel" id="q-tel" placeholder="例：09012345678" onkeydown="if(event.key==='Enter')doSearch()">
-      </div>
-      <button id="btn-search" onclick="doSearch()">検索</button>
-    </div>
-    <div id="search-results-wrap"></div>
-  </div>
-
-  <div id="seat-map-panel">
   <div id="seat-map">
     <div class="map-inner" id="map-inner">
       <p style="color:#aaa;padding:40px;text-align:center">公演を選択してください</p>
     </div>
-  </div>
-</div>
-  </div><!-- seat-map-panel -->
-
-<!-- 複数選択バー -->
-<div id="sel-bar">
-  <div>
-    <div id="sel-bar-info">0席選択中</div>
-    <div id="sel-bar-seats"></div>
-  </div>
-  <div class="sel-bar-btns">
-    <button id="btn-sel-clear" onclick="clearSelection()">✕ 選択解除</button>
-    <button id="btn-sel-register" onclick="openMultiModal()">登録する →</button>
   </div>
 </div>
 
@@ -357,15 +242,15 @@ header{
     <div id="form-new">
       <div class="form-group">
         <label>購入者名 <span style="color:red">*</span></label>
-        <input type="text" id="inp-name" placeholder="長崎太郎" autocomplete="off">
+        <input type="text" id="inp-name" placeholder="金屋太郎" autocomplete="off">
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
         <input type="tel" id="inp-tel" placeholder="09012345678" autocomplete="off">
-        <div class="hint">ハイフンなし半角入力</div>
+        <div class="hint">ハイフンなしで半角入力</div>
       </div>
       <div class="form-group">
-        <label>受付 <span style="color:red">*</span></label>
+        <label>登録者 <span style="color:red">*</span></label>
         <select id="sel-staff"><option value="">-- 選択 --</option></select>
       </div>
       <div class="err" id="err-msg"></div>
@@ -379,7 +264,7 @@ header{
       <div class="sold-card">
         <p><strong>購入者：</strong><span id="sold-name"></span></p>
         <p><strong>電話番号：</strong><span id="sold-tel"></span></p>
-        <p><strong>受付：</strong><span id="sold-staff"></span></p>
+        <p><strong>登録者：</strong><span id="sold-staff"></span></p>
       </div>
       <button id="btn-delete" onclick="deleteSeat()">🗑 この予約を取り消す</button>
       <div class="modal-btns">
@@ -389,7 +274,7 @@ header{
   </div>
 </div>
 
-<div id="loading">読み込み中...</div>
+<div id="loading">読み込みよるばい...</div>
 
 <script>
 // ─────────────────────────────────────────────
@@ -474,10 +359,9 @@ function getSeatType(blk){
 //  状態
 // ─────────────────────────────────────────────
 let account=null, showId=null;
-let soldMap={};       // seatId→{name,tel,staff,itemId}
-let colMap={};        // displayName→internalName
+let soldMap={};    // seatId→{name,tel,staff,itemId}
+let colMap={};     // displayName→internalName
 let staffList=[];
-let selectedSeats=new Map(); // seatId→{blk,num,sid}
 
 // ─────────────────────────────────────────────
 //  認証
@@ -555,9 +439,9 @@ async function loadStaff(){
   const res=await graph(`${LIST_URL}/columns`);
   // displayName または name で「登録者」列を探す
   const col=res.value.find(c=>
-    c.displayName==='受付' ||
-    c.name==='受付' ||
-    (c.displayName && c.displayName.includes('受付'))
+    c.displayName==='担当者' ||
+    c.name==='担当者' ||
+    (c.displayName && c.displayName.includes('担当')||c.displayName.includes('登録'))
   );
   if(col){
     // choice列の構造はAPIバージョンにより異なる
@@ -605,12 +489,11 @@ async function onShowChange(){
 
 async function loadSeatData(){
   if(!showId) return;
-  showLoad('座席データば読み込みよるばい...');
+  showLoad('座席データを読み込み中ばい...');
   try{
     const fld=colMap['公演ID']||'公演ID';
     const url=`${LIST_URL}/items?$expand=fields&$filter=fields/${fld} eq '${showId}'&$top=500`;
     const res=await graph(url);
-    selectedSeats.clear();
     soldMap={};
     for(const item of res.value){
       const f=item.fields;
@@ -618,7 +501,7 @@ async function loadSeatData(){
       if(sid) soldMap[sid]={
         name: f[colMap['購入者名']||'購入者名']||'',
         tel:  f[colMap['電話番号']||'電話番号']||'',
-        staff:f[colMap['受付'] || colMap['受付'] ||'受付']  ||'',
+        staff:f[colMap['担当者'] || colMap['担当者'] ||'担当者']  ||'',
         itemId:item.id
       };
     }
@@ -683,13 +566,10 @@ function renderBlock(blk){
       btn.title=`${sid}: ${soldMap[sid].name}`;
       btn.onclick=()=>openModal(blk,num,sid,true);
     } else {
-      btn.className = selectedSeats.has(sid)
-        ? 'seat selected'
-        : `seat avail-${blk.type}`;
+      btn.className=`seat avail-${blk.type}`;
       btn.textContent=num;
       btn.title=`${sid}（空席）`;
-      btn.dataset.sid=sid;
-      btn.onclick=()=>toggleSeat(blk,num,sid,btn);
+      btn.onclick=()=>openModal(blk,num,sid,false);
     }
     grid.appendChild(btn);
   }
@@ -697,72 +577,6 @@ function renderBlock(blk){
   return div;
 }
 
-// ── 複数選択管理 ────────────────────────────────────
-function toggleSeat(blk, num, sid, btn) {
-  if (selectedSeats.has(sid)) {
-    selectedSeats.delete(sid);
-    btn.className = `seat avail-${blk.type}`;
-    btn.textContent = num;
-  } else {
-    selectedSeats.set(sid, {blk, num, sid});
-    btn.className = 'seat selected';
-    btn.textContent = '✓';
-  }
-  updateSelBar();
-}
-
-function updateSelBar() {
-  const bar = document.getElementById('sel-bar');
-  const count = selectedSeats.size;
-  if (count === 0) {
-    bar.classList.remove('open');
-    return;
-  }
-  bar.classList.add('open');
-  document.getElementById('sel-bar-info').textContent = `${count}席選択中`;
-  const ids = [...selectedSeats.keys()].join('、');
-  document.getElementById('sel-bar-seats').textContent = ids;
-}
-
-function clearSelection() {
-  selectedSeats.clear();
-  // 座席ボタンの見た目をリセット
-  document.querySelectorAll('.seat.selected').forEach(btn => {
-    const sid = btn.dataset.sid;
-    const blk = BLOCKS.find(b => {
-      const num = parseInt(btn.dataset?.num || 0);
-      return getSeatId(b, num) === sid;
-    });
-    if (blk) {
-      btn.className = `seat avail-${blk.type}`;
-      btn.textContent = btn.dataset.num || '';
-    }
-  });
-  updateSelBar();
-  // 再描画で確実にリセット
-  if (showId) renderMap();
-}
-
-function openMultiModal() {
-  if (selectedSeats.size === 0) return;
-  selSeat = null; // 複数モード
-  const show = SHOWS.find(s => s.id === showId);
-  const count = selectedSeats.size;
-  const ids = [...selectedSeats.keys()].join('、');
-  document.getElementById('modal-title').textContent = `座席予約（${count}席）`;
-  document.getElementById('modal-info').textContent =
-    `${show?.label||''} ｜ ${ids}`;
-  document.getElementById('inp-name').value = '';
-  document.getElementById('inp-tel').value = '';
-  document.getElementById('sel-staff').value = '';
-  document.getElementById('err-msg').textContent = '';
-  document.getElementById('form-new').style.display = 'block';
-  document.getElementById('form-sold').style.display = 'none';
-  document.getElementById('modal-overlay').classList.add('open');
-  setTimeout(() => document.getElementById('inp-name').focus(), 100);
-}
-
-// ── 統計 ────────────────────────────────────────────
 function updateStats(){
   let ss=0,s=0,box=0;
   for(const sid of Object.keys(soldMap)){
@@ -826,25 +640,27 @@ async function saveSeat(){
   document.getElementById('btn-save').disabled=true;
   showLoad('登録中...');
   try{
-      // 読み取り専用フィールドは設定しない
-      const READONLY=['Author','Editor','Created','Modified','ID','GUID','ContentType'];
-      function sf(fields,key,val){
-        const internal=colMap[key]||key;
-        if(!READONLY.includes(internal)) fields[internal]=val;
-      }
-      const f={Title:`${showId}-${selSeat_.sid}`};
-      sf(f,'公演ID',showId);
-      sf(f,'座席ID',selSeat_.sid);
-      sf(f,'購入者名',name);
-      sf(f,'電話番号',tel);
-      sf(f,'席種',getSeatType(selSeat_.blk));
-      const staffKey=colMap['受付']||'受付';
-      if(!READONLY.includes(staffKey)){
-        f[staffKey]=staffVal;
-      }
-      await graph(`${LIST_URL}/items`,'POST',{fields:f});
+    // 読み取り専用フィールドは設定しない
+    const READONLY = ['Author','Editor','Created','Modified','ID','GUID','ContentType'];
+    function sf(fields, key, val) {
+      const internal = colMap[key] || key;
+      if (!READONLY.includes(internal)) fields[internal] = val;
     }
-    selectedSeats.clear();
+    const f = {Title:`${showId}-${selSeat.sid}`};
+    sf(f,'公演ID', showId);
+    sf(f,'座席ID', selSeat.sid);
+    sf(f,'購入者名', name);
+    sf(f,'電話番号', tel);
+    sf(f,'席種', getSeatType(selSeat.blk));
+    // 登録者は内部名が'Author'の場合はスキップし別フィールドに保存
+    const staffKey = colMap['担当者'] || '担当者';
+    if (!READONLY.includes(staffKey)) {
+      f[staffKey] = staff;
+    } else {
+      // Authorが読み取り専用の場合、備考欄として保存
+      f['Title'] = `${showId}-${selSeat.sid}-${staff}`;
+    }
+    await graph(`${LIST_URL}/items`,'POST',{fields:f});
     closeModal();
     await loadSeatData();
   }catch(e){
@@ -870,97 +686,6 @@ async function deleteSeat(){
 // ─────────────────────────────────────────────
 //  ユーティリティ
 // ─────────────────────────────────────────────
-// ── タブ切替 ────────────────────────────────────────
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  if (tab === 'map') {
-    document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-    document.getElementById('seat-map-panel').style.display = 'block';
-    document.getElementById('search-panel').classList.remove('open');
-    document.getElementById('sel-bar').style.display = selectedSeats.size > 0 ? 'flex' : 'none';
-  } else {
-    document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
-    document.getElementById('seat-map-panel').style.display = 'none';
-    document.getElementById('search-panel').classList.add('open');
-    document.getElementById('sel-bar').style.display = 'none';
-    document.getElementById('q-name').focus();
-  }
-}
-
-// ── 検索 ────────────────────────────────────────────
-async function doSearch() {
-  const qName = document.getElementById('q-name').value.trim();
-  const qTel  = document.getElementById('q-tel').value.trim();
-  const wrap   = document.getElementById('search-results-wrap');
-
-  if (!qName && !qTel) {
-    wrap.innerHTML = '<div class="no-result">購入者名または電話番号を入力してください</div>';
-    return;
-  }
-
-  wrap.innerHTML = '<div class="no-result">検索中...</div>';
-
-  try {
-    // フィルター条件を組み立て
-    const nameField = colMap['購入者名'] || '購入者名';
-    const telField  = colMap['電話番号']  || '電話番号';
-    let filters = [];
-    if (qName) filters.push(`startswith(fields/${nameField},'${qName.replace(/'/g,"''")}')`);
-    if (qTel)  filters.push(`startswith(fields/${telField},'${qTel.replace(/'/g,"''")}')`);
-    const filterStr = filters.join(' or ');
-
-    const url = `${LIST_URL}/items?$expand=fields&$filter=${encodeURIComponent(filterStr)}&$top=200`;
-    const res = await graph(url);
-
-    if (!res.value || res.value.length === 0) {
-      wrap.innerHTML = '<div class="search-results"><div class="no-result">該当する予約が見つかりませんでした</div></div>';
-      return;
-    }
-
-    // 公演IDをラベルに変換するマップ
-    const showMap = {};
-    for (const s of SHOWS) showMap[s.id] = s.label;
-
-    // テーブル描画
-    let rows = '';
-    for (const item of res.value) {
-      const f = item.fields;
-      const sid   = f[colMap['座席ID']   || '座席ID']   || '';
-      const name  = f[colMap['購入者名'] || '購入者名'] || '';
-      const tel   = f[colMap['電話番号'] || '電話番号'] || '';
-      const stype = f[colMap['席種']     || '席種']     || '';
-      const staff = f[colMap['受付']     || '受付']     || '';
-      const pid   = f[colMap['公演ID']   || '公演ID']   || '';
-      const showLabel = showMap[pid] || pid;
-      const badgeClass = stype==='SS席'?'badge-ss':stype==='S席'?'badge-s':'badge-box';
-      rows += `<tr>
-        <td>${showLabel}</td>
-        <td><span class="${badgeClass}">${stype}</span></td>
-        <td><strong>${sid}</strong></td>
-        <td>${name}</td>
-        <td>${tel}</td>
-        <td>${staff}</td>
-      </tr>`;
-    }
-
-    wrap.innerHTML = `
-      <div class="search-results">
-        <table>
-          <thead><tr>
-            <th>公演日</th><th>席種</th><th>座席ID</th>
-            <th>購入者名</th><th>電話番号</th><th>受付</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-      <p style="margin-top:10px;font-size:0.82rem;color:#888;padding:0 4px">${res.value.length}件見つかりました</p>`;
-
-  } catch(e) {
-    wrap.innerHTML = `<div class="no-result">検索エラー: ${e.message}</div>`;
-  }
-}
-
-// ────────────────────────────────────────────────────
 function showLoad(msg){document.getElementById('loading').textContent=msg;document.getElementById('loading').style.display='block'}
 function hideLoad(){document.getElementById('loading').style.display='none'}
 
@@ -1000,7 +725,7 @@ window.addEventListener('load', async () => {
     } catch(e) { console.warn(e); }
     const acc = inst.getAllAccounts();
     if (acc.length > 0) { account = acc[0]; onLoggedIn(); }
-  } catch(e) { console.warn('自動ログイン確認失敗:', e.message); }
+  } catch(e) { console.warn('あいちゃー！自動ログイン確認失敗:', e.message); }
 });
 </script>
 </body>
