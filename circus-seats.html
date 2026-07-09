@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎭 ワールドドリームサーカス 座席管理</title>
+<title>せきとりくん</title>
 <script src="./msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -273,9 +273,9 @@ header{
 <!-- ログイン画面 -->
 <div id="login-screen">
   <div class="login-logo">🎪</div>
-  <div class="login-title">ワールドドリームサーカス</div>
-  <div class="login-sub">座席管理システム</div>
-  <button id="btn-login" onclick="login()">Microsoft アカウントでログイン</button>
+  <div class="login-title">せきとりくん</div>
+  <div class="login-sub">KTN座席管理アプリ Ver.0709.0937</div>
+  <button id="btn-login" onclick="login()">KTN統合IDでログイン</button>
 </div>
 
 <!-- アプリ画面 -->
@@ -283,7 +283,7 @@ header{
   <header>
     <div class="hdr-left">
       <span class="hdr-logo">🎭</span>
-      <span class="hdr-title">ワールドドリームサーカス　座席管理</span>
+      <span class="hdr-title">せきとりくん（試験運用中）Ver.0709</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -320,7 +320,7 @@ header{
       </div>
       <div class="form-group">
         <label>電話番号で検索</label>
-        <input type="tel" id="q-tel" placeholder="例：090-1234" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="tel" id="q-tel" placeholder="例：09012345678" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <button id="btn-search" onclick="doSearch()">検索</button>
     </div>
@@ -357,12 +357,12 @@ header{
     <div id="form-new">
       <div class="form-group">
         <label>購入者名 <span style="color:red">*</span></label>
-        <input type="text" id="inp-name" placeholder="山田 太郎" autocomplete="off">
+        <input type="text" id="inp-name" placeholder="長崎太郎" autocomplete="off">
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
-        <input type="tel" id="inp-tel" placeholder="090-1234-5678" autocomplete="off">
-        <div class="hint">ハイフンありで入力してください</div>
+        <input type="tel" id="inp-tel" placeholder="09012345678" autocomplete="off">
+        <div class="hint">ハイフンなし半角入力</div>
       </div>
       <div class="form-group">
         <label>受付 <span style="color:red">*</span></label>
@@ -605,7 +605,7 @@ async function onShowChange(){
 
 async function loadSeatData(){
   if(!showId) return;
-  showLoad('座席データを読み込み中...');
+  showLoad('座席データば読み込みよるばい...');
   try{
     const fld=colMap['公演ID']||'公演ID';
     const url=`${LIST_URL}/items?$expand=fields&$filter=fields/${fld} eq '${showId}'&$top=500`;
@@ -636,7 +636,7 @@ function renderMap(){
 
   // ステージ
   const stg=document.createElement('div');
-  stg.className='stage-bar'; stg.textContent='◆  S T A G E  ◆';
+  stg.className='stage-bar'; stg.textContent='◆  ステージ  ◆';
   wrap.appendChild(stg);
 
   const SECS=[
