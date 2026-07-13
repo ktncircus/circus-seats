@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>せきとりくん</title>
+<title>🎭 ワールドドリームサーカス 座席管理</title>
 <script src="./msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -186,9 +186,9 @@ body.sel-open #seat-map{padding-bottom:90px}
 
 <div id="login-screen">
   <div class="login-logo">🎪</div>
-  <div class="login-title">せきとりくん</div>
-  <div class="login-sub">KTNサーカス座席管理 Ver.0713.1600</div>
-  <button id="btn-login" onclick="login()">KTN Office365でログイン</button>
+  <div class="login-title">ワールドドリームサーカス</div>
+  <div class="login-sub">座席管理システム</div>
+  <button id="btn-login" onclick="login()">Microsoft アカウントでログイン</button>
   <div id="login-err"></div>
 </div>
 
@@ -196,7 +196,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">せきとりくん（テスト中）Ver.0713</span>
+      <span class="hdr-title">ワールドドリームサーカス　座席管理</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -239,7 +239,7 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>電話番号で検索</label>
-        <input type="tel" id="q-tel" placeholder="例：0901234" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="tel" id="q-tel" placeholder="例：090-1234" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <button id="btn-search" onclick="doSearch()">検索</button>
     </div>
@@ -271,12 +271,12 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>購入者名 <span style="color:red">*</span></label>
-        <input type="text" id="inp-name" placeholder="山田太郎" autocomplete="off">
+        <input type="text" id="inp-name" placeholder="山田 太郎" autocomplete="off">
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
         <input type="tel" id="inp-tel" placeholder="090-1234-5678" autocomplete="off">
-        <div class="hint">ハイフンなし半角</div>
+        <div class="hint">ハイフンありで入力してください</div>
       </div>
       <div class="form-group">
         <label>受付 <span style="color:red">*</span></label>
@@ -334,7 +334,7 @@ const msalCfg = {
   },
   cache:{cacheLocation:'sessionStorage'}
 };
-const SCOPES = ['https://graph.microsoft.com/Sites.ReadWrite.All'];
+const SCOPES = ['https://graph.microsoft.com/Sites.Selected'];
 const WD = ['日','月','火','水','木','金','土'];
 
 // ─────────────────────────────────────────────
