@@ -187,8 +187,8 @@ body.sel-open #seat-map{padding-bottom:90px}
 <div id="login-screen">
   <div class="login-logo">🎪</div>
   <div class="login-title">せきとりくん</div>
-  <div class="login-sub">座席管理システム Ver.0710.1730</div>
-  <button id="btn-login" onclick="login()">ログイン</button>
+  <div class="login-sub">KTNサーカス座席管理 Ver.0713.1600</div>
+  <button id="btn-login" onclick="login()">KTN Office365でログイン</button>
   <div id="login-err"></div>
 </div>
 
@@ -196,7 +196,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">ワールドドリームサーカス　座席管理</span>
+      <span class="hdr-title">せきとりくん（テスト中）Ver.0713</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -239,7 +239,7 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>電話番号で検索</label>
-        <input type="tel" id="q-tel" placeholder="例：090-1234" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="tel" id="q-tel" placeholder="例：0901234" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <button id="btn-search" onclick="doSearch()">検索</button>
     </div>
@@ -271,12 +271,12 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>購入者名 <span style="color:red">*</span></label>
-        <input type="text" id="inp-name" placeholder="山田 太郎" autocomplete="off">
+        <input type="text" id="inp-name" placeholder="山田太郎" autocomplete="off">
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
         <input type="tel" id="inp-tel" placeholder="090-1234-5678" autocomplete="off">
-        <div class="hint">ハイフンありで入力してください</div>
+        <div class="hint">ハイフンなし半角</div>
       </div>
       <div class="form-group">
         <label>受付 <span style="color:red">*</span></label>
@@ -290,7 +290,11 @@ body.sel-open #seat-map{padding-bottom:90px}
     </div>
     <div id="form-sold" style="display:none">
       <div id="sold-card-wrap"></div>
-      <button id="btn-delete" onclick="deleteSeat()">🗑 この予約を取り消す</button>
+      <button id="btn-add-cancel" onclick="toggleCancelFromModal()"
+        style="width:100%;padding:10px;border-radius:8px;font-size:.88rem;cursor:pointer;font-family:inherit;margin-bottom:8px;border:1px solid #FFCDD2;background:#FFF5F5;color:#C62828">
+        🗑 取消対象に追加
+      </button>
+      <button id="btn-delete" onclick="deleteSeat()">🗑 この1席だけ今すぐ取り消す</button>
       <div class="modal-btns">
         <button id="btn-close" onclick="closeModal()">閉じる</button>
       </div>
@@ -326,11 +330,11 @@ const msalCfg = {
   auth:{
     clientId: CLIENT_ID,
     authority:'https://login.microsoftonline.com/' + TENANT_ID,
-    redirectUri: window.location.origin + window.location.pathname,
+    redirectUri: "https://ktno365.sharepoint.com/sites/circus2026/SiteAssets/circus-seats.html",
   },
   cache:{cacheLocation:'sessionStorage'}
 };
-const SCOPES = ['https://graph.microsoft.com/Sites.ReadWrite.All'];
+const SCOPES = ['https://graph.microsoft.com/Sites.Selected'];
 const WD = ['日','月','火','水','木','金','土'];
 
 // ─────────────────────────────────────────────
@@ -739,25 +743,21 @@ function toggleAny(blk,num,sid,btn){
     updateSelBar();
     return;
   }
-  // 選択追加
-  var mode = soldMap[sid] ? 'cancel' : 'reg';
-  // 登録と取消を混在させない
-  var hasReg=false, hasCancel=false;
-  selectedSeats.forEach(function(v){
-    if(v.mode==='reg') hasReg=true;
-    if(v.mode==='cancel') hasCancel=true;
-  });
-  if(mode==='reg'&&hasCancel){
+  // 販売済みはまず情報モーダルを表示
+  if(soldMap[sid]){
+    openSoldModalWithAction(blk,num,sid);
+    return;
+  }
+  // 空席は登録選択
+  var hasCancel=false;
+  selectedSeats.forEach(function(v){if(v.mode==='cancel') hasCancel=true;});
+  if(hasCancel){
     alert('取消待ちの席と登録待ちの席を同時に選択できません。 一度「解除」してからやり直してください。');
     return;
   }
-  if(mode==='cancel'&&hasReg){
-    alert('登録待ちの席と取消待ちの席を同時に選択できません。 一度「解除」してからやり直してください。');
-    return;
-  }
-  selectedSeats.set(sid,{blk:blk,num:num,sid:sid,mode:mode});
-  btn.className = mode==='cancel' ? 'seat sel-cancel' : 'seat selected';
-  btn.textContent = mode==='cancel' ? '✕' : '✓';
+  selectedSeats.set(sid,{blk:blk,num:num,sid:sid,mode:'reg'});
+  btn.className = 'seat selected';
+  btn.textContent = '✓';
   updateSelBar();
 }
 
@@ -784,8 +784,8 @@ function updateSelBar(){
   else label=n+'席選択中';
   document.getElementById('sel-bar-info').textContent = label;
   document.getElementById('sel-bar-seats').textContent = ids.join('、');
-  document.getElementById('btn-sel-ok').style.display = hasReg?'':'none';
-  document.getElementById('btn-sel-cancel-all').style.display = hasCancel?'':'none';
+  document.getElementById('btn-sel-ok').style.display = hasReg?'inline-block':'none';
+  document.getElementById('btn-sel-cancel-all').style.display = hasCancel?'inline-block':'none';
 }
 
 function clearSelection(){
@@ -838,25 +838,75 @@ function openPgModal(blk,num,sid){
 }
 
 // ─────────────────────────────────────────────
-//  モーダル（販売済み確認）
+//  モーダル（販売済み確認＋取消追加）
 // ─────────────────────────────────────────────
-function openSoldModal(blk,num,sid,isPg){
+function openSoldModalWithAction(blk,num,sid){
+  var isPg = blk.role==='pg';
   selSeat = {blk:blk,num:num,sid:sid,isPg:isPg};
   var info = soldMap[sid];
   var show = null;
   for(var i=0;i<SHOWS.length;i++){if(SHOWS[i].id===showId){show=SHOWS[i];break;}}
   document.getElementById('modal-title').textContent = isPg?'PG席情報':'予約情報';
-  document.getElementById('modal-info').textContent = (show?show.label:'')+'｜'+sid;
+  document.getElementById('modal-info').textContent = (show?show.label:'')+'｜'+sid+(isPg?' [PG席]':'');
   var cardClass = isPg?'pg-card':'sold-card';
+
+  // 取消選択済みかチェック
+  var alreadyInCancel = selectedSeats.has(sid);
+
   document.getElementById('sold-card-wrap').innerHTML =
     '<div class="'+cardClass+'">'
     +'<p><strong>購入者：</strong>'+info.name+'</p>'
     +'<p><strong>電話番号：</strong>'+info.tel+'</p>'
     +'<p><strong>受付：</strong>'+info.staff+'</p>'
     +'</div>';
+
+  // 「取消対象に追加」ボタン
+  var addCancelBtn = document.getElementById('btn-add-cancel');
+  if(alreadyInCancel){
+    addCancelBtn.textContent = '✓ 取消対象から外す';
+    addCancelBtn.style.background = '#E8F5E9';
+    addCancelBtn.style.color = '#2E7D32';
+    addCancelBtn.style.borderColor = '#A5D6A7';
+  } else {
+    addCancelBtn.textContent = '🗑 取消対象に追加';
+    addCancelBtn.style.background = '#FFF5F5';
+    addCancelBtn.style.color = '#C62828';
+    addCancelBtn.style.borderColor = '#FFCDD2';
+  }
+
   document.getElementById('form-new').style.display='none';
   document.getElementById('form-sold').style.display='block';
   document.getElementById('modal-overlay').classList.add('open');
+}
+
+function openSoldModal(blk,num,sid,isPg){
+  openSoldModalWithAction(blk,num,sid);
+}
+
+// 取消対象への追加/除外
+function toggleCancelFromModal(){
+  if(!selSeat) return;
+  var sid = selSeat.sid;
+  var blk = selSeat.blk;
+  if(selectedSeats.has(sid)){
+    // 取消対象から外す
+    selectedSeats.delete(sid);
+    updateSelBar();
+    closeModal();
+    renderMap();
+  } else {
+    // 取消対象に追加
+    var hasReg=false;
+    selectedSeats.forEach(function(v){if(v.mode==='reg') hasReg=true;});
+    if(hasReg){
+      alert('登録待ちの席と取消待ちの席を同時に選択できません。 一度「解除」してからやり直してください。');
+      return;
+    }
+    selectedSeats.set(sid,{blk:blk,num:selSeat.num,sid:sid,mode:'cancel'});
+    updateSelBar();
+    closeModal();
+    renderMap();
+  }
 }
 
 function closeModal(){
