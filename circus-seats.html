@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>せきとりくん Ver.0714</title>
+<title>せきとりくん</title>
 <script src="./msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -187,8 +187,8 @@ body.sel-open #seat-map{padding-bottom:90px}
 <div id="login-screen">
   <div class="login-logo">🎪</div>
   <div class="login-title">せきとりくん</div>
-  <div class="login-sub">KTNサーカス座席管理システム Ver.0714.0930</div>
-  <button id="btn-login" onclick="login()">KTN 統合IDでログイン</button>
+  <div class="login-sub">KTNサーカス座席管理 Ver.0715.0930</div>
+  <button id="btn-login" onclick="login()">KTN統合IDでログイン</button>
   <div id="login-err"></div>
 </div>
 
@@ -196,7 +196,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">せきとりくん Ver.0714.0930（テスト運用中）</span>
+      <span class="hdr-title">せきとりくん（試験運用中）Ver.0715.0930</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -275,8 +275,8 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
-        <input type="tel" id="inp-tel" placeholder="090-1234-5678" autocomplete="off">
-        <div class="hint">ハイフンなし半角数字</div>
+        <input type="tel" id="inp-tel" placeholder="09012345678" autocomplete="off">
+        <div class="hint">ハイフンなし半角</div>
       </div>
       <div class="form-group">
         <label>受付 <span style="color:red">*</span></label>
@@ -284,7 +284,7 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="err" id="err-msg"></div>
       <div class="modal-btns">
-        <button id="btn-save" onclick="saveSeat()">✓ 登録</button>
+        <button id="btn-save" onclick="saveSeat()">✓ 登録する</button>
         <button id="btn-cancel" onclick="closeModal()">キャンセル</button>
       </div>
     </div>
@@ -565,7 +565,7 @@ async function onShowChange(){
 
 async function loadSeatData(){
   if(!showId) return;
-  showLoad('座席データを読み込み中ばい...待っとかんね');
+  showLoad('座席データ読み込み中...');
   try{
     var fld = colMap['公演ID']||'公演ID';
     var url = LIST_URL+'/items?$expand=fields&$filter=fields/'+fld+' eq \''+showId+'\'&$top=500';
@@ -602,7 +602,7 @@ function renderMap(){
 
   var stg = document.createElement('div');
   stg.className = 'stage-bar';
-  stg.textContent = '◆  ステージ  ◆';
+  stg.textContent = '◆  S T A G E  ◆';
   wrap.appendChild(stg);
 
   var SECS = [
@@ -697,21 +697,27 @@ function renderBlock(blk){
 }
 
 function updateStats(){
-  var ss=0,sS=0,box=0,ssSold=0,sSold=0,boxSold=0;
+  var ss=0,sS=0,box=0,ssSold=0,sSold=0,boxSold=0,pgIndSold=0;
   for(var k=0;k<BLOCKS.length;k++){
     var blk=BLOCKS[k];
-    if(blk.role!=='ktn') continue;
     for(var i=0;i<blk.seats.length;i++){
       var sid=getSeatId(blk,blk.seats[i]);
-      if(blk.id.startsWith('SS')){ss++;if(soldMap[sid])ssSold++;}
-      else if(blk.id.startsWith('S_')){sS++;if(soldMap[sid])sSold++;}
-      else{box++;if(soldMap[sid])boxSold++;}
+      var info=soldMap[sid];
+      if(blk.role==='ktn'){
+        // KTN枠のみカウント
+        if(blk.id.startsWith('SS')){ss++;if(info&&info.name!=='返却済')ssSold++;}
+        else if(blk.id.startsWith('S_')){sS++;if(info&&info.name!=='返却済')sSold++;}
+        else{box++;if(info&&info.name!=='返却済')boxSold++;}
+      } else {
+        // PG席：個人購入済みのみ別カウント（返却済・PG配分除外）
+        if(info&&info.name!=='返却済'&&info.name!==PG_CONFIG.buyerName) pgIndSold++;
+      }
     }
   }
   document.getElementById('stat-ss') .textContent='SS: '+ssSold+'/'+ss;
   document.getElementById('stat-s')  .textContent='S: '+sSold+'/'+sS;
   document.getElementById('stat-box').textContent='BOX: '+boxSold+'/'+box;
-  document.getElementById('stat-tot').textContent='KTN販売: '+(ssSold+sSold+boxSold)+'/215';
+  document.getElementById('stat-tot').textContent='KTN: '+(ssSold+sSold+boxSold)+'/215'+(pgIndSold>0?' PG返却→販売:'+pgIndSold:'');
 }
 
 // ─────────────────────────────────────────────
@@ -743,8 +749,10 @@ function toggleAny(blk,num,sid,btn){
     updateSelBar();
     return;
   }
-  // 販売済みはまず情報モーダルを表示
-  if(soldMap[sid]){
+  // 返却済PG席は空席として扱う
+  var isReturnedPg = soldMap[sid] && soldMap[sid].name==='返却済';
+  // 販売済み（返却済以外）はまず情報モーダル表示
+  if(soldMap[sid] && !isReturnedPg){
     openSoldModalWithAction(blk,num,sid);
     return;
   }
@@ -818,23 +826,51 @@ function openMultiModal(){
 }
 
 // ─────────────────────────────────────────────
-//  モーダル（PG席）
+//  モーダル（PG配分済み席）
 // ─────────────────────────────────────────────
-function openPgModal(blk,num,sid){
+function openPgAllocModal(blk,num,sid){
   selSeat = {blk:blk,num:num,sid:sid,isPg:true};
-  var show = null;
+  var show=null;
   for(var i=0;i<SHOWS.length;i++){if(SHOWS[i].id===showId){show=SHOWS[i];break;}}
-  document.getElementById('modal-title').textContent = 'PG席を登録';
-  document.getElementById('modal-info').textContent = (show?show.label:'')+'｜'+sid+'（PG席）';
-  document.getElementById('pg-note').style.display = 'block';
-  document.getElementById('inp-name').value = PG_CONFIG.buyerName;
-  document.getElementById('inp-tel').value  = PG_CONFIG.tel;
-  document.getElementById('sel-staff').value = PG_CONFIG.staff;
-  document.getElementById('err-msg').textContent='';
-  document.getElementById('form-new').style.display='block';
-  document.getElementById('form-sold').style.display='none';
+  document.getElementById('modal-title').textContent = 'PG配分済み席';
+  document.getElementById('modal-info').textContent = (show?show.label:'')+'｜'+sid;
+  document.getElementById('sold-card-wrap').innerHTML =
+    '<div class="pg-card">'
+    +'<p><strong>状態：</strong>プレイガイドに配分済み</p>'
+    +'<p style="font-size:.8rem;color:#888;margin-top:6px">返却後は「返却済みにする」で自社販売枠に変更できます</p>'
+    +'</div>';
+  // 返却済みボタンの設定
+  var addCancelBtn=document.getElementById('btn-add-cancel');
+  addCancelBtn.textContent='📦 返却済みにする（自社販売可に変更）';
+  addCancelBtn.style.background='#EFF6FF';
+  addCancelBtn.style.color='#1D4ED8';
+  addCancelBtn.style.borderColor='#BFDBFE';
+  addCancelBtn.onclick=function(){markAsReturned();};
+  // 「今すぐ取り消す」は非表示
+  document.getElementById('btn-delete').style.display='none';
+  document.getElementById('form-new').style.display='none';
+  document.getElementById('form-sold').style.display='block';
   document.getElementById('modal-overlay').classList.add('open');
-  setTimeout(function(){document.getElementById('inp-name').focus();},100);
+}
+
+async function markAsReturned(){
+  if(!selSeat) return;
+  showLoad('返却済みに変更中...');
+  try{
+    var READONLY=['Author','Editor','Created','Modified','ID','GUID','ContentType'];
+    function setR(f,k,v){var n=colMap[k]||k;if(READONLY.indexOf(n)<0)f[n]=v;}
+    var f={Title:showId+'-'+selSeat.sid};
+    setR(f,'公演ID',showId); setR(f,'座席ID',selSeat.sid);
+    setR(f,'購入者名','返却済'); setR(f,'電話番号','');
+    setR(f,'席種',getSeatType(selSeat.blk)); setR(f,'受付','システム');
+    if(soldMap[selSeat.sid]){
+      await graph(LIST_URL+'/items/'+soldMap[selSeat.sid].itemId,'PATCH',{fields:f});
+    } else {
+      await graph(LIST_URL+'/items','POST',{fields:f});
+    }
+    closeModal(); await loadSeatData();
+  }catch(e){alert('エラー: '+e.message);}
+  finally{hideLoad();}
 }
 
 // ─────────────────────────────────────────────
@@ -852,6 +888,10 @@ function openSoldModalWithAction(blk,num,sid){
 
   // 取消選択済みかチェック
   var alreadyInCancel = selectedSeats.has(sid);
+  // btn-deleteとbtn-add-cancelをリセット
+  document.getElementById('btn-delete').style.display='block';
+  var addCancelBtn2=document.getElementById('btn-add-cancel');
+  addCancelBtn2.onclick=function(){toggleCancelFromModal();};
 
   document.getElementById('sold-card-wrap').innerHTML =
     '<div class="'+cardClass+'">'
@@ -927,7 +967,17 @@ async function cancelSelected(){
     for(var i=0;i<targets.length;i++){
       var t=targets[i];
       if(soldMap[t.sid]&&soldMap[t.sid].itemId){
-        await graph(LIST_URL+'/items/'+soldMap[t.sid].itemId,'DELETE');
+        if(t.blk.role==='pg'){
+          // PG席はDELETEせず返却済みに戻す
+          var READONLY2=['Author','Editor','Created','Modified','ID','GUID','ContentType'];
+          function setC(f,k,v){var n=colMap[k]||k;if(READONLY2.indexOf(n)<0)f[n]=v;}
+          var cf={Title:showId+'-'+t.sid};
+          setC(cf,'購入者名','返却済'); setC(cf,'電話番号','');
+          setC(cf,'受付','システム');
+          await graph(LIST_URL+'/items/'+soldMap[t.sid].itemId,'PATCH',{fields:cf});
+        } else {
+          await graph(LIST_URL+'/items/'+soldMap[t.sid].itemId,'DELETE');
+        }
       }
     }
     selectedSeats.clear();
@@ -992,7 +1042,12 @@ async function saveSeat(){
       setF(f,'電話番号', useTel);
       setF(f,'席種', getSeatType(t.blk));
       setF(f,'受付', useStaff);
-      await graph(LIST_URL+'/items','POST',{fields:f});
+      // 返却済PG席はPATCHで上書き（重複防止）
+      if(soldMap[t.sid] && soldMap[t.sid].name==='返却済'){
+        await graph(LIST_URL+'/items/'+soldMap[t.sid].itemId,'PATCH',{fields:f});
+      } else {
+        await graph(LIST_URL+'/items','POST',{fields:f});
+      }
     }
     selectedSeats.clear();
     closeModal();
