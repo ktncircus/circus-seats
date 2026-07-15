@@ -187,7 +187,7 @@ body.sel-open #seat-map{padding-bottom:90px}
 <div id="login-screen">
   <div class="login-logo">🎪</div>
   <div class="login-title">せきとりくん</div>
-  <div class="login-sub">KTNサーカス座席管理 Ver.0715.0930</div>
+  <div class="login-sub">KTNサーカス座席管理 Ver.0715.1600</div>
   <button id="btn-login" onclick="login()">KTN統合IDでログイン</button>
   <div id="login-err"></div>
 </div>
@@ -196,7 +196,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">せきとりくん（試験運用中）Ver.0715.0930</span>
+      <span class="hdr-title">せきとりくん（試験運用）Ver.0715.1600</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -239,7 +239,7 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>電話番号で検索</label>
-        <input type="tel" id="q-tel" placeholder="例：0901234" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="tel" id="q-tel" placeholder="例：090-1234" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <button id="btn-search" onclick="doSearch()">検索</button>
     </div>
@@ -271,12 +271,12 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>購入者名 <span style="color:red">*</span></label>
-        <input type="text" id="inp-name" placeholder="山田太郎" autocomplete="off">
+        <input type="text" id="inp-name" placeholder="山田 太郎" autocomplete="off">
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
-        <input type="tel" id="inp-tel" placeholder="09012345678" autocomplete="off">
-        <div class="hint">ハイフンなし半角</div>
+        <input type="tel" id="inp-tel" placeholder="090-1234-5678" autocomplete="off">
+        <div class="hint">ハイフンありで入力してください</div>
       </div>
       <div class="form-group">
         <label>受付 <span style="color:red">*</span></label>
@@ -841,10 +841,19 @@ function openPgAllocModal(blk,num,sid){
     +'</div>';
   // 返却済みボタンの設定
   var addCancelBtn=document.getElementById('btn-add-cancel');
-  addCancelBtn.textContent='📦 返却済みにする（自社販売可に変更）';
-  addCancelBtn.style.background='#EFF6FF';
+  addCancelBtn.style.display='block';
+  addCancelBtn.style.width='100%';
+  addCancelBtn.style.padding='12px';
+  addCancelBtn.style.marginBottom='8px';
+  addCancelBtn.style.borderRadius='8px';
+  addCancelBtn.style.fontSize='.95rem';
+  addCancelBtn.style.cursor='pointer';
+  addCancelBtn.style.fontFamily='inherit';
+  addCancelBtn.style.fontWeight='bold';
+  addCancelBtn.style.background='#DBEAFE';
   addCancelBtn.style.color='#1D4ED8';
-  addCancelBtn.style.borderColor='#BFDBFE';
+  addCancelBtn.style.border='2px solid #93C5FD';
+  addCancelBtn.textContent='📦 返却済みにする（自社販売枠に変更）';
   addCancelBtn.onclick=function(){markAsReturned();};
   // 「今すぐ取り消す」は非表示
   document.getElementById('btn-delete').style.display='none';
@@ -891,6 +900,11 @@ function openSoldModalWithAction(blk,num,sid){
   // btn-deleteとbtn-add-cancelをリセット
   document.getElementById('btn-delete').style.display='block';
   var addCancelBtn2=document.getElementById('btn-add-cancel');
+  addCancelBtn2.style.display='block';
+  addCancelBtn2.style.background='#FFF5F5';
+  addCancelBtn2.style.color='#C62828';
+  addCancelBtn2.style.border='1px solid #FFCDD2';
+  addCancelBtn2.style.fontWeight='normal';
   addCancelBtn2.onclick=function(){toggleCancelFromModal();};
 
   document.getElementById('sold-card-wrap').innerHTML =
