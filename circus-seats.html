@@ -672,21 +672,34 @@ function renderBlock(blk){
         })(blk,num,sid,btn);
       }
     } else {
-      // PG席
-      if(soldMap[sid]){
-        var info = soldMap[sid];
-        btn.className = info.name===PG_CONFIG.buyerName ? 'seat pg-set' : 'seat pg-sold';
-        btn.textContent = info.name===PG_CONFIG.buyerName ? 'PG' : info.name;
-        btn.title = sid+': '+info.name;
+      // PG席：状態判定
+      var pgInfo    = soldMap[sid];
+      var isPgAlloc  = !pgInfo || pgInfo.name===PG_CONFIG.buyerName;
+      var isReturned = pgInfo && pgInfo.name==='返却済';
+
+      if(isPgAlloc){
+        // PG配分済（紫・予約済み見た目）
+        btn.className = 'seat pg-set';
+        btn.textContent = 'PG';
+        btn.title = sid+'（PG配分済）';
+        (function(b_,num_,sid_,btn_){
+          btn_.onclick = function(){openPgAllocModal(b_,num_,sid_);};
+        })(blk,num,sid,btn);
+      } else if(isReturned){
+        // 返却済→自社販売可（KTN空席と同じ見た目）
+        btn.className = 'seat avail-'+blk.type;
+        btn.textContent = num;
+        btn.title = sid+'（返却済・自社販売可）';
         (function(b_,num_,sid_,btn_){
           btn_.onclick = function(){toggleAny(b_,num_,sid_,btn_);};
         })(blk,num,sid,btn);
       } else {
-        btn.className = 'seat pg-avail';
-        btn.textContent = num;
-        btn.title = sid+'（PG）';
+        // 個人購入済（緑、KTN統計外）
+        btn.className = 'seat sold';
+        btn.textContent = pgInfo.name;
+        btn.title = sid+': '+pgInfo.name+'（PG席・個人購入）';
         (function(b_,num_,sid_,btn_){
-          btn_.onclick = function(){toggleAny(b_,num_,sid_,btn_);};
+          btn_.onclick = function(){openSoldModalWithAction(b_,num_,sid_);};
         })(blk,num,sid,btn);
       }
     }
