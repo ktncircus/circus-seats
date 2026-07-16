@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>せきとりくん</title>
+<title>せきとりくん（試験運用）</title>
 <script src="./msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -187,8 +187,8 @@ body.sel-open #seat-map{padding-bottom:90px}
 <div id="login-screen">
   <div class="login-logo">🎪</div>
   <div class="login-title">せきとりくん</div>
-  <div class="login-sub">KTNサーカス座席管理 Ver.0716.0800</div>
-  <button id="btn-login" onclick="login()">KTN統合IDでログイン</button>
+  <div class="login-sub">サーカス座席管理 Ver.0716.1400</div>
+  <button id="btn-login" onclick="login()">統合IDでログイン</button>
   <div id="login-err"></div>
 </div>
 
@@ -196,7 +196,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">せきとりくん（試験運用）Ver.0716.0800</span>
+      <span class="hdr-title">せきとりくん（試験運用）Ver.0716.1400</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -239,7 +239,7 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>電話番号で検索</label>
-        <input type="tel" id="q-tel" placeholder="例：090-1234" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="tel" id="q-tel" placeholder="例：0901234" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <button id="btn-search" onclick="doSearch()">検索</button>
     </div>
@@ -271,12 +271,12 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>購入者名 <span style="color:red">*</span></label>
-        <input type="text" id="inp-name" placeholder="山田 太郎" autocomplete="off">
+        <input type="text" id="inp-name" placeholder="山田太郎" autocomplete="off">
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
-        <input type="tel" id="inp-tel" placeholder="090-1234-5678" autocomplete="off">
-        <div class="hint">ハイフンありで入力してください</div>
+        <input type="tel" id="inp-tel" placeholder="09012345678" autocomplete="off">
+        <div class="hint">ハイフンなし半角数字</div>
       </div>
       <div class="form-group">
         <label>受付 <span style="color:red">*</span></label>
@@ -302,7 +302,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   </div>
 </div>
 
-<div id="loading">読み込み中...</div>
+<div id="loading">待っとかんね、読み込みよるけん...</div>
 
 <script>
 // ─────────────────────────────────────────────
@@ -602,7 +602,7 @@ function renderMap(){
 
   var stg = document.createElement('div');
   stg.className = 'stage-bar';
-  stg.textContent = '◆  S T A G E  ◆';
+  stg.textContent = '◆  ステージ  ◆';
   wrap.appendChild(stg);
 
   var SECS = [
@@ -1041,11 +1041,13 @@ async function saveSeat(){
   // 二重チェック
   var dups = [];
   for(var i=0;i<targets.length;i++){
-var isReturnedPg = soldMap[sid] && soldMap[sid].name==='返却済';
-if(soldMap[sid] && !isReturnedPg){
-  openSoldModalWithAction(blk,num,sid);
-  return;
-}
+    var _info=soldMap[targets[i].sid];
+    if(_info && _info.name!=='返却済') dups.push(targets[i].sid);
+  }
+  if(dups.length>0){
+    err.textContent=dups.join('、')+' はすでに予約済みです。更新してご確認ください。';
+    return;
+  }
 
   document.getElementById('btn-save').disabled=true;
   showLoad(targets.length+'席を登録中...');
@@ -1176,7 +1178,7 @@ async function doSearch(){
 // ─────────────────────────────────────────────
 function showLoad(msg){
   var el=document.getElementById('loading');
-  el.textContent=msg||'読み込み中...';
+  el.textContent=msg||'読み込みよるばい...';
   el.style.display='block';
 }
 function hideLoad(){document.getElementById('loading').style.display='none';}
