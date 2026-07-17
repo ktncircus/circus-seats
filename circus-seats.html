@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>せきとりくん（試験運用）</title>
+<title>せきとりくん</title>
 <script src="./msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -187,7 +187,7 @@ body.sel-open #seat-map{padding-bottom:90px}
 <div id="login-screen">
   <div class="login-logo">🎪</div>
   <div class="login-title">せきとりくん</div>
-  <div class="login-sub">サーカス座席管理 Ver.0716.1400</div>
+  <div class="login-sub">KTNサーカス座席管理 Ver.0717.0900</div>
   <button id="btn-login" onclick="login()">統合IDでログイン</button>
   <div id="login-err"></div>
 </div>
@@ -196,7 +196,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">せきとりくん（試験運用）Ver.0716.1400</span>
+      <span class="hdr-title">せきとりくん（試験運用）Ver.0717.0900</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -215,6 +215,7 @@ body.sel-open #seat-map{padding-bottom:90px}
       <option value="">-- 公演を選択してください --</option>
     </select>
     <button id="btn-refresh" onclick="loadSeatData()">🔄 更新</button>
+    <button id="btn-cancel-mode" onclick="toggleCancelMode()" style="background:#f5f5f5;color:#444;border:1px solid #ddd;padding:8px 18px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.88rem;transition:all .2s">🗑 取消モード OFF</button>
     <div id="stats">
       <span class="stat st-ss"  id="stat-ss">SS: ―</span>
       <span class="stat st-s"   id="stat-s" >S: ―</span>
@@ -235,7 +236,7 @@ body.sel-open #seat-map{padding-bottom:90px}
     <div class="search-box">
       <div class="form-group">
         <label>購入者名で検索</label>
-        <input type="text" id="q-name" placeholder="例：山田" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="text" id="q-name" placeholder="例：やまだ" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <div class="form-group">
         <label>電話番号で検索</label>
@@ -271,16 +272,23 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>購入者名 <span style="color:red">*</span></label>
-        <input type="text" id="inp-name" placeholder="山田太郎" autocomplete="off">
+        <input type="text" id="inp-name" placeholder="やまだたろう" autocomplete="off">
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
         <input type="tel" id="inp-tel" placeholder="09012345678" autocomplete="off">
-        <div class="hint">ハイフンなし半角数字</div>
+        <div class="hint">ハイフンなし半角</div>
       </div>
       <div class="form-group">
         <label>受付 <span style="color:red">*</span></label>
         <select id="sel-staff"><option value="">-- 選択 --</option></select>
+      </div>
+      <div class="form-group">
+        <label>メモ（任意）</label>
+        <textarea id="inp-memo" placeholder="備考・連絡事項など" rows="2"
+          style="width:100%;padding:10px 13px;border:2px solid #e0e0e0;border-radius:8px;
+          font-size:.9rem;font-family:inherit;resize:vertical;transition:border-color .15s"
+          onfocus="this.style.borderColor='#2a4a8a'" onblur="this.style.borderColor='#e0e0e0'"></textarea>
       </div>
       <div class="err" id="err-msg"></div>
       <div class="modal-btns">
@@ -302,7 +310,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   </div>
 </div>
 
-<div id="loading">待っとかんね、読み込みよるけん...</div>
+<div id="loading">読み込み中ばい、ちょっとまっとかんね...</div>
 
 <script>
 // ─────────────────────────────────────────────
@@ -396,6 +404,7 @@ function getSeatType(blk){
 //  状態
 // ─────────────────────────────────────────────
 var msalInstance = null;
+var cancelMode = false; // 複数取消モード
 var account = null;
 var showId = null;
 var soldMap = {};       // seatId → {name,tel,staff,itemId}
@@ -565,7 +574,7 @@ async function onShowChange(){
 
 async function loadSeatData(){
   if(!showId) return;
-  showLoad('座席データ読み込み中...');
+  showLoad('座席データば読み込み中ばい...');
   try{
     var fld = colMap['公演ID']||'公演ID';
     var url = LIST_URL+'/items?$expand=fields&$filter=fields/'+fld+' eq \''+showId+'\'&$top=500';
@@ -580,6 +589,7 @@ async function loadSeatData(){
           name:   f[colMap['購入者名']||'購入者名']||'',
           tel:    f[colMap['電話番号'] ||'電話番号'] ||'',
           staff:  f[colMap['受付']     ||'受付']     ||'',
+          memo:   f[colMap['メモ']      ||'メモ']      ||'',
           itemId: item.id
         };
       }
@@ -699,7 +709,7 @@ function renderBlock(blk){
         btn.textContent = pgInfo.name;
         btn.title = sid+': '+pgInfo.name+'（PG席・個人購入）';
         (function(b_,num_,sid_,btn_){
-          btn_.onclick = function(){openSoldModalWithAction(b_,num_,sid_);};
+          btn_.onclick = function(){toggleAny(b_,num_,sid_,btn_);};
         })(blk,num,sid,btn);
       }
     }
@@ -764,6 +774,15 @@ function toggleAny(blk,num,sid,btn){
   }
   // 返却済PG席は空席として扱う
   var isReturnedPg = soldMap[sid] && soldMap[sid].name==='返却済';
+  // 取消モードON + 販売済み → 直接取消選択
+  if(cancelMode && soldMap[sid] && !isReturnedPg){
+    var hasReg2=false;
+    selectedSeats.forEach(function(v){if(v.mode==='reg') hasReg2=true;});
+    if(hasReg2){alert('登録待ちの席と取消待ちの席を同時に選択できません。 一度「解除」してからやり直してください。');return;}
+    selectedSeats.set(sid,{blk:blk,num:num,sid:sid,mode:'cancel'});
+    btn.className='seat sel-cancel'; btn.textContent='✕';
+    updateSelBar(); return;
+  }
   // 販売済み（返却済以外）はまず情報モーダル表示
   if(soldMap[sid] && !isReturnedPg){
     openSoldModalWithAction(blk,num,sid);
@@ -780,6 +799,24 @@ function toggleAny(blk,num,sid,btn){
   btn.className = 'seat selected';
   btn.textContent = '✓';
   updateSelBar();
+}
+
+function toggleCancelMode(){
+  cancelMode = !cancelMode;
+  var btn = document.getElementById('btn-cancel-mode');
+  if(cancelMode){
+    btn.style.background='#C62828'; btn.style.color='white';
+    btn.style.border='1px solid #C62828';
+    btn.textContent='🗑 取消モード ON';
+    // 登録待ちがあればクリア
+    var hasReg=false;
+    selectedSeats.forEach(function(v){if(v.mode==='reg') hasReg=true;});
+    if(hasReg){selectedSeats.clear();updateSelBar();if(showId)renderMap();}
+  } else {
+    btn.style.background='#f5f5f5'; btn.style.color='#444';
+    btn.style.border='1px solid #ddd';
+    btn.textContent='🗑 取消モード OFF';
+  }
 }
 
 function updateSelBar(){
@@ -831,6 +868,7 @@ function openMultiModal(){
   document.getElementById('inp-name').value='';
   document.getElementById('inp-tel').value='';
   document.getElementById('sel-staff').value='';
+  var _m=document.getElementById('inp-memo'); if(_m) _m.value='';
   document.getElementById('err-msg').textContent='';
   document.getElementById('form-new').style.display='block';
   document.getElementById('form-sold').style.display='none';
@@ -925,6 +963,7 @@ function openSoldModalWithAction(blk,num,sid){
     +'<p><strong>購入者：</strong>'+info.name+'</p>'
     +'<p><strong>電話番号：</strong>'+info.tel+'</p>'
     +'<p><strong>受付：</strong>'+info.staff+'</p>'
+    +(memoVal?'<p><strong>メモ：</strong>'+memoVal+'</p>':'')
     +'</div>';
 
   // 「取消対象に追加」ボタン
@@ -1136,8 +1175,8 @@ async function doSearch(){
     var nf = colMap['購入者名']||'購入者名';
     var tf = colMap['電話番号'] ||'電話番号';
     var filters=[];
-    if(qName) filters.push('startswith(fields/'+nf+',\''+qName.replace(/'/g,"''")+'\')');
-    if(qTel)  filters.push('startswith(fields/'+tf+',\''+qTel.replace(/'/g,"''")+'\')');
+    if(qName) filters.push('substringof(\''+qName.replace(/'/g,"''")+"\',fields/"+nf+')');
+    if(qTel)  filters.push('substringof(\''+qTel.replace(/'/g,"''")+"\',fields/"+tf+')');
     var url = LIST_URL+'/items?$expand=fields&$filter='+encodeURIComponent(filters.join(' or '))+'&$top=200';
     var res = await graph(url);
     if(!res.value||res.value.length===0){
@@ -1165,7 +1204,7 @@ async function doSearch(){
         +'<td>'+nm+'</td><td>'+tel2+'</td><td>'+stf+'</td></tr>';
     }
     wrap.innerHTML='<div class="s-results"><table>'
-      +'<thead><tr><th>公演日</th><th>席種</th><th>座席ID</th><th>購入者名</th><th>電話番号</th><th>受付</th></tr></thead>'
+      +'<thead><tr><th>公演日</th><th>席種</th><th>座席ID</th><th>購入者名</th><th>電話番号</th><th>受付</th><th>メモ</th></tr></thead>'
       +'<tbody>'+rows+'</tbody></table></div>'
       +'<p style="margin-top:10px;font-size:.82rem;color:#888;padding:0 4px">'+res.value.length+'件見つかりました</p>';
   }catch(e){
@@ -1178,7 +1217,7 @@ async function doSearch(){
 // ─────────────────────────────────────────────
 function showLoad(msg){
   var el=document.getElementById('loading');
-  el.textContent=msg||'読み込みよるばい...';
+  el.textContent=msg||'読み込み中...';
   el.style.display='block';
 }
 function hideLoad(){document.getElementById('loading').style.display='none';}
