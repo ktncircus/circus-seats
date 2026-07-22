@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>せきとりくん Ver.0722.0930</title>
+<title>せきとりくん</title>
 <script src="./msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -111,8 +111,9 @@ header{background:linear-gradient(90deg,#1a2f5a,#2a4a8a);color:white;padding:0 2
   box-shadow:0 -4px 20px rgba(0,0,0,.3);z-index:200}
 #sel-bar.open{display:flex}
 body.sel-open #seat-map{padding-bottom:90px}
+#sel-bar-text{flex:1 1 auto;min-width:0;overflow:hidden}
 #sel-bar-info{font-size:1rem;font-weight:bold}
-#sel-bar-seats{font-size:.8rem;color:#8aa4d4;margin-top:3px;max-width:60%;
+#sel-bar-seats{font-size:.8rem;color:#8aa4d4;margin-top:3px;max-width:100%;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sel-bar-btns{display:flex;gap:10px;flex-shrink:0}
 #btn-sel-ok{background:#FFD700;color:#1a2f5a;border:none;padding:10px 24px;
@@ -187,7 +188,7 @@ body.sel-open #seat-map{padding-bottom:90px}
 <div id="login-screen">
   <div class="login-logo">🎪</div>
   <div class="login-title">せきとりくん</div>
-  <div class="login-sub">サーカス座席管理 Ver.0722.0930</div>
+  <div class="login-sub">座席管理システム Ver.0722.0945</div>
   <button id="btn-login" onclick="login()">統合IDでログイン</button>
   <div id="login-err"></div>
 </div>
@@ -196,7 +197,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">せきとりくん Ver.0722.0930（機能評価版）</span>
+      <span class="hdr-title">せきとりくん Ver.0722.0945（機能評価版）</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -250,7 +251,7 @@ body.sel-open #seat-map{padding-bottom:90px}
 
 <!-- 複数選択バー（KTNのみ） -->
 <div id="sel-bar">
-  <div>
+  <div id="sel-bar-text">
     <div id="sel-bar-info">0席選択中</div>
     <div id="sel-bar-seats"></div>
   </div>
@@ -277,7 +278,7 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
-        <input type="tel" id="inp-tel" placeholder="090-1234-5678" autocomplete="off">
+        <input type="tel" id="inp-tel" placeholder="09012345678" autocomplete="off">
         <div class="hint">ハイフンなし半角数字</div>
       </div>
       <div class="form-group">
@@ -286,7 +287,7 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>メモ（任意）</label>
-        <textarea id="inp-memo" placeholder="備考・連絡事項など" rows="2"
+        <textarea id="inp-memo" placeholder="連絡事項など" rows="2"
           style="width:100%;padding:10px 13px;border:2px solid #e0e0e0;border-radius:8px;
           font-size:.9rem;font-family:inherit;resize:vertical;transition:border-color .15s"
           onfocus="this.style.borderColor='#2a4a8a'" onblur="this.style.borderColor='#e0e0e0'"></textarea>
@@ -311,7 +312,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   </div>
 </div>
 
-<div id="loading">読み込み中...</div>
+<div id="loading">読み込み中ばい...</div>
 
 <script>
 // ─────────────────────────────────────────────
@@ -367,7 +368,7 @@ const SHOWS = (function(){
 function p2(n){return String(n).padStart(2,'0');}
 function p3(n){return String(n).padStart(3,'0');}
 function rng(s,e){return Array.from({length:e-s+1},function(_,i){return s+i;});}
-// XSS対策：innerHTMLに差し込む前に必ずエスケープする
+// XSS対策
 function esc(s){
   return String(s==null?'':s).replace(/[&<>"']/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
@@ -499,7 +500,7 @@ async function onLoggedIn(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   document.getElementById('user-name').textContent = account.name;
-  showLoad('初期化中...ちょっとまっとかんね...');
+  showLoad('初期化中ばい...');
   try{
     await loadColumns();
     buildShowSel();
@@ -571,7 +572,7 @@ async function onShowChange(){
 
 async function loadSeatData(){
   if(!showId) return;
-  showLoad('座席データ読み込み中...');
+  showLoad('座席データば読み込み中ばい...ちょっとまっとかんね');
   try{
     var fld = colMap['公演ID']||'公演ID';
     var url = LIST_URL+'/items?$expand=fields&$filter=fields/'+fld+' eq \''+showId+'\'&$top=500';
@@ -964,7 +965,7 @@ function openPgAllocModal(blk,num,sid){
 
 async function markAsReturned(){
   if(!selSeat) return;
-  showLoad('最新状態を確認中...');
+  showLoad('最新状態を確認中やけど...');
   try{
     // 同時編集対策：直前にサーバーの最新itemIdを再取得してから更新
     var latest = await fetchLatestSoldMap();
@@ -1012,7 +1013,7 @@ function openSoldModalWithAction(blk,num,sid){
   addCancelBtn2.style.fontWeight='normal';
   addCancelBtn2.onclick=function(){toggleCancelFromModal();};
 
-  // XSS対策：保存された値は信頼できないため必ずescで無害化
+  // XSS対策：SharePointに保存された値は信頼できないため必ずescで無害化してから挿入
   document.getElementById('sold-card-wrap').innerHTML =
     '<div class="'+cardClass+'">'
     +'<p><strong>購入者：</strong>'+esc(info.name)+'</p>'
@@ -1243,7 +1244,7 @@ async function saveSeat(){
 async function deleteSeat(){
   if(!selSeat||!soldMap[selSeat.sid]) return;
   if(!confirm(selSeat.sid+' の予約を取り消しますか？')) return;
-  showLoad('取り消し中...');
+  showLoad('取り消し中ばい...');
   try{
     await graph(LIST_URL+'/items/'+soldMap[selSeat.sid].itemId,'DELETE');
     closeModal();
@@ -1336,6 +1337,8 @@ async function doSearch(){
       +'<p style="margin-top:10px;font-size:.82rem;color:#888;padding:0 4px">'+res.value.length+'件見つかりました</p>';
   }catch(e){
     wrap.innerHTML='<div class="s-results"><div class="no-r">検索エラー: '+esc(e.message)+'</div></div>';
+  }finally{
+    hideLoad();
   }
 }
 
