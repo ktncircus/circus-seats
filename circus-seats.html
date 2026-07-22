@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>せきとりくん</title>
+<title>せきとりくん Ver.0722.0930</title>
 <script src="./msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -187,7 +187,7 @@ body.sel-open #seat-map{padding-bottom:90px}
 <div id="login-screen">
   <div class="login-logo">🎪</div>
   <div class="login-title">せきとりくん</div>
-  <div class="login-sub">KTNサーカス座席管理 Ver.0717.0900</div>
+  <div class="login-sub">サーカス座席管理 Ver.0722.0930</div>
   <button id="btn-login" onclick="login()">統合IDでログイン</button>
   <div id="login-err"></div>
 </div>
@@ -196,7 +196,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">せきとりくん（試験運用）Ver.0717.0900</span>
+      <span class="hdr-title">せきとりくん Ver.0722.0930（機能評価版）</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -236,7 +236,7 @@ body.sel-open #seat-map{padding-bottom:90px}
     <div class="search-box">
       <div class="form-group">
         <label>購入者名で検索</label>
-        <input type="text" id="q-name" placeholder="例：やまだ" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="text" id="q-name" placeholder="例：かなや" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <div class="form-group">
         <label>電話番号で検索</label>
@@ -257,6 +257,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <div class="sel-bar-btns">
     <button id="btn-sel-clr" onclick="clearSelection()">✕ 解除</button>
     <button id="btn-sel-cancel-all" onclick="cancelSelected()" style="display:none;background:#FFF0F0;color:#C62828;border:1px solid #FFAAAA;padding:10px 18px;border-radius:8px;font-size:.9rem;cursor:pointer;font-family:inherit">🗑 取り消す</button>
+    <button id="btn-sel-pg-return" onclick="bulkPgReturn()" style="display:none;background:#EFF6FF;color:#1D4ED8;border:1px solid #93C5FD;padding:10px 18px;border-radius:8px;font-size:.9rem;cursor:pointer;font-family:inherit">📦 返却済みにする</button>
     <button id="btn-sel-ok"  onclick="openMultiModal()">登録する →</button>
   </div>
 </div>
@@ -272,12 +273,12 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>購入者名 <span style="color:red">*</span></label>
-        <input type="text" id="inp-name" placeholder="やまだたろう" autocomplete="off">
+        <input type="text" id="inp-name" placeholder="かなやたろう" autocomplete="off">
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
-        <input type="tel" id="inp-tel" placeholder="09012345678" autocomplete="off">
-        <div class="hint">ハイフンなし半角</div>
+        <input type="tel" id="inp-tel" placeholder="090-1234-5678" autocomplete="off">
+        <div class="hint">ハイフンなし半角数字</div>
       </div>
       <div class="form-group">
         <label>受付 <span style="color:red">*</span></label>
@@ -310,7 +311,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   </div>
 </div>
 
-<div id="loading">読み込み中ばい、ちょっとまっとかんね...</div>
+<div id="loading">読み込み中...</div>
 
 <script>
 // ─────────────────────────────────────────────
@@ -366,6 +367,12 @@ const SHOWS = (function(){
 function p2(n){return String(n).padStart(2,'0');}
 function p3(n){return String(n).padStart(3,'0');}
 function rng(s,e){return Array.from({length:e-s+1},function(_,i){return s+i;});}
+// XSS対策：innerHTMLに差し込む前に必ずエスケープする
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
 
 // ─────────────────────────────────────────────
 //  座席定義（全席）
@@ -433,7 +440,7 @@ async function getMsal(){
 
 async function login(){
   var errEl = document.getElementById('login-err');
-  errEl.textContent = 'ログイン処理中...';
+  errEl.textContent = 'ログイン処理中ばい...';
   try{
     var inst = await getMsal();
     var r = await inst.loginPopup({scopes:SCOPES});
@@ -492,10 +499,9 @@ async function onLoggedIn(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   document.getElementById('user-name').textContent = account.name;
-  showLoad('初期化中...');
+  showLoad('初期化中...ちょっとまっとかんね...');
   try{
-    await loadColMap();
-    await loadStaff();
+    await loadColumns();
     buildShowSel();
     buildStaffSel();
   }catch(e){
@@ -505,26 +511,17 @@ async function onLoggedIn(){
   }
 }
 
-async function loadColMap(){
+// 列情報取得（旧：loadColMap+loadStaffの2回呼び出しを1回に統合）
+async function loadColumns(){
   var res = await graph(LIST_URL+'/columns');
   colMap = {};
+  staffList = [];
   for(var i=0;i<res.value.length;i++){
     var c = res.value[i];
     colMap[c.displayName] = c.name;
-  }
-}
-
-async function loadStaff(){
-  var res = await graph(LIST_URL+'/columns');
-  var col = null;
-  for(var i=0;i<res.value.length;i++){
-    var c = res.value[i];
     if(c.displayName==='受付'||c.displayName.includes('受付')){
-      col = c; break;
+      if(c.choice && c.choice.choices) staffList = c.choice.choices;
     }
-  }
-  if(col && col.choice && col.choice.choices){
-    staffList = col.choice.choices;
   }
 }
 
@@ -574,7 +571,7 @@ async function onShowChange(){
 
 async function loadSeatData(){
   if(!showId) return;
-  showLoad('座席データば読み込み中ばい...');
+  showLoad('座席データ読み込み中...');
   try{
     var fld = colMap['公演ID']||'公演ID';
     var url = LIST_URL+'/items?$expand=fields&$filter=fields/'+fld+' eq \''+showId+'\'&$top=500';
@@ -601,6 +598,29 @@ async function loadSeatData(){
   }finally{
     hideLoad();
   }
+}
+
+// 同時編集による二重登録防止：保存直前にサーバーの最新状態を取得
+async function fetchLatestSoldMap(){
+  var fld = colMap['公演ID']||'公演ID';
+  var url = LIST_URL+'/items?$expand=fields&$filter=fields/'+fld+' eq \''+showId+'\'&$top=500';
+  var res = await graph(url);
+  var m = {};
+  for(var i=0;i<res.value.length;i++){
+    var item = res.value[i];
+    var f = item.fields;
+    var sid = f[colMap['座席ID']||'座席ID'];
+    if(sid){
+      m[sid] = {
+        name:   f[colMap['購入者名']||'購入者名']||'',
+        tel:    f[colMap['電話番号'] ||'電話番号'] ||'',
+        staff:  f[colMap['受付']     ||'受付']     ||'',
+        memo:   f[colMap['メモ']      ||'メモ']      ||'',
+        itemId: item.id
+      };
+    }
+  }
+  return m;
 }
 
 // ─────────────────────────────────────────────
@@ -693,7 +713,28 @@ function renderBlock(blk){
         btn.textContent = 'PG';
         btn.title = sid+'（PG配分済）';
         (function(b_,num_,sid_,btn_){
-          btn_.onclick = function(){openPgAllocModal(b_,num_,sid_);};
+          btn_.onclick = function(){
+            if(cancelMode){
+              // 取消モード：PG配分済みを返却済みリストへ
+              if(selectedSeats.has(sid_)){
+                selectedSeats.delete(sid_);
+                btn_.className='seat pg-set'; btn_.textContent='PG';
+                updateSelBar();
+              } else {
+                var hasOther=false;
+                selectedSeats.forEach(function(v){if(v.mode==='reg'||v.mode==='cancel') hasOther=true;});
+                if(hasOther){
+                  alert('登録待ち・取消待ちの席とPG返却待ちの席を同時に選択できません。 一度「解除」してからやり直してください。');
+                  return;
+                }
+                selectedSeats.set(sid_,{blk:b_,num:num_,sid:sid_,mode:'pg-return'});
+                btn_.className='seat sel-cancel'; btn_.textContent='✕';
+                updateSelBar();
+              }
+            } else {
+              openPgAllocModal(b_,num_,sid_);
+            }
+          };
         })(blk,num,sid,btn);
       } else if(isReturned){
         // 返却済→自社販売可（KTN空席と同じ見た目）
@@ -752,13 +793,16 @@ function toggleAny(blk,num,sid,btn){
     selectedSeats.delete(sid);
     var isSold = !!soldMap[sid];
     if(blk.role==='pg'){
-      if(soldMap[sid]){
-        var info=soldMap[sid];
-        btn.className=info.name===PG_CONFIG.buyerName?'seat pg-set':'seat pg-sold';
-        btn.textContent=info.name===PG_CONFIG.buyerName?'PG':info.name;
+      var info=soldMap[sid];
+      if(!info || info.name===PG_CONFIG.buyerName){
+        // 配分エントリなし、または明示的にPG配分済み
+        btn.className='seat pg-set'; btn.textContent='PG';
+      } else if(info.name==='返却済'){
+        // 返却済＝自社販売可（KTN空席と同じ見た目）
+        btn.className='seat avail-'+blk.type; btn.textContent=num;
       } else {
-        btn.className='seat pg-avail';
-        btn.textContent=num;
+        // 個人購入済
+        btn.className='seat pg-sold'; btn.textContent=info.name;
       }
     } else {
       if(soldMap[sid]){
@@ -776,9 +820,9 @@ function toggleAny(blk,num,sid,btn){
   var isReturnedPg = soldMap[sid] && soldMap[sid].name==='返却済';
   // 取消モードON + 販売済み → 直接取消選択
   if(cancelMode && soldMap[sid] && !isReturnedPg){
-    var hasReg2=false;
-    selectedSeats.forEach(function(v){if(v.mode==='reg') hasReg2=true;});
-    if(hasReg2){alert('登録待ちの席と取消待ちの席を同時に選択できません。 一度「解除」してからやり直してください。');return;}
+    var hasReg2=false, hasPgReturn2=false;
+    selectedSeats.forEach(function(v){if(v.mode==='reg') hasReg2=true; if(v.mode==='pg-return') hasPgReturn2=true;});
+    if(hasReg2||hasPgReturn2){alert('登録待ち・返却待ちの席と取消待ちの席を同時に選択できません。 一度「解除」してからやり直してください。');return;}
     selectedSeats.set(sid,{blk:blk,num:num,sid:sid,mode:'cancel'});
     btn.className='seat sel-cancel'; btn.textContent='✕';
     updateSelBar(); return;
@@ -789,10 +833,10 @@ function toggleAny(blk,num,sid,btn){
     return;
   }
   // 空席は登録選択
-  var hasCancel=false;
-  selectedSeats.forEach(function(v){if(v.mode==='cancel') hasCancel=true;});
-  if(hasCancel){
-    alert('取消待ちの席と登録待ちの席を同時に選択できません。 一度「解除」してからやり直してください。');
+  var hasCancel=false, hasPgReturn=false;
+  selectedSeats.forEach(function(v){if(v.mode==='cancel') hasCancel=true; if(v.mode==='pg-return') hasPgReturn=true;});
+  if(hasCancel||hasPgReturn){
+    alert('取消待ち・返却待ちの席と登録待ちの席を同時に選択できません。 一度「解除」してからやり直してください。');
     return;
   }
   selectedSeats.set(sid,{blk:blk,num:num,sid:sid,mode:'reg'});
@@ -829,21 +873,26 @@ function updateSelBar(){
   }
   bar.classList.add('open');
   document.body.classList.add('sel-open');
-  var hasReg=false, hasCancel=false, regN=0, cancelN=0;
+  var hasReg=false, hasCancel=false, hasPgReturn=false;
+  var regN=0, cancelN=0, pgReturnN=0;
   var ids=[];
   selectedSeats.forEach(function(v){
     ids.push(v.sid);
     if(v.mode==='cancel'){hasCancel=true;cancelN++;}
+    else if(v.mode==='pg-return'){hasPgReturn=true;pgReturnN++;}
     else{hasReg=true;regN++;}
   });
   var label = '';
-  if(hasReg&&!hasCancel) label=regN+'席選択中（登録待ち）';
-  else if(hasCancel&&!hasReg) label=cancelN+'席選択中（取消待ち）';
+  if(hasReg&&!hasCancel&&!hasPgReturn) label=regN+'席選択中（登録待ち）';
+  else if(hasCancel&&!hasReg&&!hasPgReturn) label=cancelN+'席選択中（取消待ち）';
+  else if(hasPgReturn&&!hasReg&&!hasCancel) label=pgReturnN+'席選択中（PG返却待ち）';
   else label=n+'席選択中';
   document.getElementById('sel-bar-info').textContent = label;
   document.getElementById('sel-bar-seats').textContent = ids.join('、');
   document.getElementById('btn-sel-ok').style.display = hasReg?'inline-block':'none';
   document.getElementById('btn-sel-cancel-all').style.display = hasCancel?'inline-block':'none';
+  var pgRetBtn=document.getElementById('btn-sel-pg-return');
+  if(pgRetBtn) pgRetBtn.style.display = hasPgReturn?'inline-block':'none';
 }
 
 function clearSelection(){
@@ -859,11 +908,11 @@ function openMultiModal(){
   var show = null;
   for(var i=0;i<SHOWS.length;i++){if(SHOWS[i].id===showId){show=SHOWS[i];break;}}
   var ids = [];
-  selectedSeats.forEach(function(v){ids.push(v.sid);});
-  document.getElementById('modal-title').textContent = '座席予約（'+selectedSeats.size+'席）';
+  selectedSeats.forEach(function(v){ if(v.mode==='reg'||!v.mode) ids.push(v.sid); });
+  document.getElementById('modal-title').textContent = '座席予約（'+ids.length+'席）';
   document.getElementById('modal-info').textContent = (show?show.label:'')+'｜'+ids.join('、');
   var hasPg=false;
-  selectedSeats.forEach(function(v){if(v.blk.role==='pg')hasPg=true;});
+  selectedSeats.forEach(function(v){if((v.mode==='reg'||!v.mode)&&v.blk.role==='pg')hasPg=true;});
   document.getElementById('pg-note').style.display=hasPg?'block':'none';
   document.getElementById('inp-name').value='';
   document.getElementById('inp-tel').value='';
@@ -915,16 +964,20 @@ function openPgAllocModal(blk,num,sid){
 
 async function markAsReturned(){
   if(!selSeat) return;
-  showLoad('返却済みに変更中...');
+  showLoad('最新状態を確認中...');
   try{
+    // 同時編集対策：直前にサーバーの最新itemIdを再取得してから更新
+    var latest = await fetchLatestSoldMap();
+    var cur = latest[selSeat.sid];
+    showLoad('返却済みに変更中...');
     var READONLY=['Author','Editor','Created','Modified','ID','GUID','ContentType'];
     function setR(f,k,v){var n=colMap[k]||k;if(READONLY.indexOf(n)<0)f[n]=v;}
     var f={Title:showId+'-'+selSeat.sid};
     setR(f,'公演ID',showId); setR(f,'座席ID',selSeat.sid);
     setR(f,'購入者名','返却済'); setR(f,'電話番号','');
     setR(f,'席種',getSeatType(selSeat.blk)); setR(f,'受付','システム');
-    if(soldMap[selSeat.sid]){
-      await graph(LIST_URL+'/items/'+soldMap[selSeat.sid].itemId,'PATCH',{fields:f});
+    if(cur){
+      await graph(LIST_URL+'/items/'+cur.itemId,'PATCH',{fields:f});
     } else {
       await graph(LIST_URL+'/items','POST',{fields:f});
     }
@@ -944,6 +997,7 @@ function openSoldModalWithAction(blk,num,sid){
   for(var i=0;i<SHOWS.length;i++){if(SHOWS[i].id===showId){show=SHOWS[i];break;}}
   document.getElementById('modal-title').textContent = isPg?'PG席情報':'予約情報';
   document.getElementById('modal-info').textContent = (show?show.label:'')+'｜'+sid+(isPg?' [PG席]':'');
+  var memoVal = (info && info.memo) ? info.memo : '';
   var cardClass = isPg?'pg-card':'sold-card';
 
   // 取消選択済みかチェック
@@ -958,12 +1012,13 @@ function openSoldModalWithAction(blk,num,sid){
   addCancelBtn2.style.fontWeight='normal';
   addCancelBtn2.onclick=function(){toggleCancelFromModal();};
 
+  // XSS対策：保存された値は信頼できないため必ずescで無害化
   document.getElementById('sold-card-wrap').innerHTML =
     '<div class="'+cardClass+'">'
-    +'<p><strong>購入者：</strong>'+info.name+'</p>'
-    +'<p><strong>電話番号：</strong>'+info.tel+'</p>'
-    +'<p><strong>受付：</strong>'+info.staff+'</p>'
-    +(memoVal?'<p><strong>メモ：</strong>'+memoVal+'</p>':'')
+    +'<p><strong>購入者：</strong>'+esc(info.name)+'</p>'
+    +'<p><strong>電話番号：</strong>'+esc(info.tel)+'</p>'
+    +'<p><strong>受付：</strong>'+esc(info.staff)+'</p>'
+    +(memoVal?'<p><strong>メモ：</strong>'+esc(memoVal)+'</p>':'')
     +'</div>';
 
   // 「取消対象に追加」ボタン
@@ -1002,10 +1057,10 @@ function toggleCancelFromModal(){
     renderMap();
   } else {
     // 取消対象に追加
-    var hasReg=false;
-    selectedSeats.forEach(function(v){if(v.mode==='reg') hasReg=true;});
-    if(hasReg){
-      alert('登録待ちの席と取消待ちの席を同時に選択できません。 一度「解除」してからやり直してください。');
+    var hasReg=false, hasPgReturn=false;
+    selectedSeats.forEach(function(v){if(v.mode==='reg') hasReg=true; if(v.mode==='pg-return') hasPgReturn=true;});
+    if(hasReg||hasPgReturn){
+      alert('登録待ち・返却待ちの席と取消待ちの席を同時に選択できません。 一度「解除」してからやり直してください。');
       return;
     }
     selectedSeats.set(sid,{blk:blk,num:selSeat.num,sid:sid,mode:'cancel'});
@@ -1023,6 +1078,39 @@ function closeModal(){
 // ─────────────────────────────────────────────
 //  保存
 // ─────────────────────────────────────────────
+async function bulkPgReturn(){
+  var targets=[];
+  selectedSeats.forEach(function(v){if(v.mode==='pg-return')targets.push(v);});
+  if(targets.length===0) return;
+  if(!confirm(targets.length+'席のPG配分を返却済みに変更しますか？')) return;
+  showLoad('最新状態を確認中...');
+  try{
+    // 同時編集対策：直前にサーバーの最新itemIdを再取得してから更新
+    var latestR = await fetchLatestSoldMap();
+    showLoad(targets.length+'席を返却済みに変更中...');
+    var READONLY_R=['Author','Editor','Created','Modified','ID','GUID','ContentType'];
+    function setR2(f,k,v){var n=colMap[k]||k;if(READONLY_R.indexOf(n)<0)f[n]=v;}
+    for(var i=0;i<targets.length;i++){
+      var t=targets[i];
+      var f={Title:showId+'-'+t.sid};
+      setR2(f,'公演ID',showId); setR2(f,'座席ID',t.sid);
+      setR2(f,'購入者名','返却済'); setR2(f,'電話番号','');
+      setR2(f,'席種',getSeatType(t.blk)); setR2(f,'受付','システム');
+      var curR=latestR[t.sid];
+      if(curR&&curR.itemId){
+        await graph(LIST_URL+'/items/'+curR.itemId,'PATCH',{fields:f});
+      } else {
+        await graph(LIST_URL+'/items','POST',{fields:f});
+      }
+    }
+    selectedSeats.clear();
+    document.body.classList.remove('sel-open');
+    updateSelBar();
+    await loadSeatData();
+  }catch(e){alert('エラー: '+e.message);}
+  finally{hideLoad();}
+}
+
 async function cancelSelected(){
   var targets=[];
   selectedSeats.forEach(function(v){if(v.mode==='cancel')targets.push(v);});
@@ -1068,16 +1156,16 @@ async function saveSeat(){
   if(!tel) {err.textContent='電話番号を入力してください';return;}
   if(!staffV){err.textContent='受付を選択してください';return;}
 
-  // 対象座席リスト
+  // 対象座席リスト（登録待ち(reg)モードの席のみ。取消/返却待ちが混じっていても無視する）
   var targets = [];
   if(selectedSeats.size>0){
-    selectedSeats.forEach(function(v){targets.push(v);});
+    selectedSeats.forEach(function(v){ if(v.mode==='reg'||!v.mode) targets.push(v); });
   } else if(selSeat){
     targets.push(selSeat);
   }
   if(targets.length===0) return;
 
-  // 二重チェック
+  // 二重チェック（ローカルキャッシュ）
   var dups = [];
   for(var i=0;i<targets.length;i++){
     var _info=soldMap[targets[i].sid];
@@ -1089,6 +1177,30 @@ async function saveSeat(){
   }
 
   document.getElementById('btn-save').disabled=true;
+  showLoad('最新状態を確認中...');
+  var latest;
+  try{
+    // 同時編集による二重登録防止：保存直前にサーバー最新状態を再確認
+    latest = await fetchLatestSoldMap();
+  }catch(e){
+    err.textContent='最新状態の確認に失敗しました: '+e.message;
+    document.getElementById('btn-save').disabled=false;
+    hideLoad();
+    return;
+  }
+  var conflicts=[];
+  for(var i=0;i<targets.length;i++){
+    var li=latest[targets[i].sid];
+    if(li && li.name!=='返却済') conflicts.push(targets[i].sid);
+  }
+  if(conflicts.length>0){
+    err.textContent=conflicts.join('、')+' は他の操作により、すでに予約済みになっています。画面を更新してご確認ください。';
+    document.getElementById('btn-save').disabled=false;
+    hideLoad();
+    await loadSeatData();
+    return;
+  }
+
   showLoad(targets.length+'席を登録中...');
   try{
     var READONLY=['Author','Editor','Created','Modified','ID','GUID','ContentType'];
@@ -1109,9 +1221,10 @@ async function saveSeat(){
       setF(f,'電話番号', useTel);
       setF(f,'席種', getSeatType(t.blk));
       setF(f,'受付', useStaff);
-      // 返却済PG席はPATCHで上書き（重複防止）
-      if(soldMap[t.sid] && soldMap[t.sid].name==='返却済'){
-        await graph(LIST_URL+'/items/'+soldMap[t.sid].itemId,'PATCH',{fields:f});
+      // 返却済PG席はPATCHで上書き（重複防止、直前に取得した最新itemIdを使用）
+      var li2 = latest[t.sid];
+      if(li2 && li2.name==='返却済'){
+        await graph(LIST_URL+'/items/'+li2.itemId,'PATCH',{fields:f});
       } else {
         await graph(LIST_URL+'/items','POST',{fields:f});
       }
@@ -1174,11 +1287,23 @@ async function doSearch(){
   try{
     var nf = colMap['購入者名']||'購入者名';
     var tf = colMap['電話番号'] ||'電話番号';
-    var filters=[];
-    if(qName) filters.push('substringof(\''+qName.replace(/'/g,"''")+"\',fields/"+nf+')');
-    if(qTel)  filters.push('substringof(\''+qTel.replace(/'/g,"''")+"\',fields/"+tf+')');
-    var url = LIST_URL+'/items?$expand=fields&$filter='+encodeURIComponent(filters.join(' or '))+'&$top=200';
-    var res = await graph(url);
+    var qnL = qName.toLowerCase();
+    var qtL = qTel.toLowerCase();
+    // 全件取得してクライアント側でフィルタ（contains検索）
+    showLoad('全件取得中...');
+    var allItems=[];
+    var nextUrl=LIST_URL+'/items?$expand=fields&$top=500';
+    while(nextUrl){
+      var pageRes=await graph(nextUrl);
+      allItems=allItems.concat(pageRes.value);
+      nextUrl=pageRes['@odata.nextLink']||null;
+    }
+    var res = {value: allItems.filter(function(item){
+      var f=item.fields;
+      var nm=(f[nf]||'').toLowerCase();
+      var tl=(f[tf]||'').toLowerCase();
+      return (!qnL||nm.includes(qnL))&&(!qtL||tl.includes(qtL));
+    })};
     if(!res.value||res.value.length===0){
       wrap.innerHTML='<div class="s-results"><div class="no-r">該当する予約が見つかりませんでした</div></div>';
       return;
@@ -1193,22 +1318,24 @@ async function doSearch(){
       var tel2  = f[colMap['電話番号']||'電話番号']||'';
       var stype = f[colMap['席種']    ||'席種']    ||'';
       var stf   = f[colMap['受付']    ||'受付']    ||'';
+      var mm    = f[colMap['メモ']    ||'メモ']    ||'';
       var pid   = f[colMap['公演ID']  ||'公演ID']  ||'';
       var sl    = showMap[pid]||pid;
       var isPg  = (nm===PG_CONFIG.buyerName);
       var bdg   = stype==='SS席'?'bdg-ss':stype==='S席'?'bdg-s':stype==='BOX席'?'bdg-bx':'bdg-pg';
       if(isPg) bdg='bdg-pg';
-      rows+='<tr><td>'+sl+'</td>'
-        +'<td><span class="'+bdg+'">'+(isPg?'PG':stype)+'</span></td>'
-        +'<td><strong>'+sid+'</strong></td>'
-        +'<td>'+nm+'</td><td>'+tel2+'</td><td>'+stf+'</td></tr>';
+      // XSS対策：ユーザー入力由来の値は全てescで無害化してから挿入
+      rows+='<tr><td>'+esc(sl)+'</td>'
+        +'<td><span class="'+bdg+'">'+(isPg?'PG':esc(stype))+'</span></td>'
+        +'<td><strong>'+esc(sid)+'</strong></td>'
+        +'<td>'+esc(nm)+'</td><td>'+esc(tel2)+'</td><td>'+esc(stf)+'</td><td>'+esc(mm)+'</td></tr>';
     }
     wrap.innerHTML='<div class="s-results"><table>'
       +'<thead><tr><th>公演日</th><th>席種</th><th>座席ID</th><th>購入者名</th><th>電話番号</th><th>受付</th><th>メモ</th></tr></thead>'
       +'<tbody>'+rows+'</tbody></table></div>'
       +'<p style="margin-top:10px;font-size:.82rem;color:#888;padding:0 4px">'+res.value.length+'件見つかりました</p>';
   }catch(e){
-    wrap.innerHTML='<div class="s-results"><div class="no-r">検索エラー: '+e.message+'</div></div>';
+    wrap.innerHTML='<div class="s-results"><div class="no-r">検索エラー: '+esc(e.message)+'</div></div>';
   }
 }
 
@@ -1217,7 +1344,7 @@ async function doSearch(){
 // ─────────────────────────────────────────────
 function showLoad(msg){
   var el=document.getElementById('loading');
-  el.textContent=msg||'読み込み中...';
+  el.textContent=msg||'読み込み中ばい...';
   el.style.display='block';
 }
 function hideLoad(){document.getElementById('loading').style.display='none';}
