@@ -428,6 +428,21 @@ function getSeatType(blk){
 }
 
 // ─────────────────────────────────────────────
+//  BOX席：印刷用座席マップ（BOX席座席マップ.pdf）に合わせた物理配置
+//  ステージに近い順（上から）に5段、各段は隙間で区切られたかたまりの並び
+//  太枠（KTN確保）＝1〜10番・21〜30番／灰色（ギリギリまで売らない）＝73〜88番
+// ─────────────────────────────────────────────
+var BOX_ROWS = [
+  [[20,19,18,17,16], [15,14,13,12,11,10,9,8,7,6], [5,4,3,2,1]],
+  [[40,39], [38,37,36], [35,34,33,32,31,30,29,28,27,26], [25,24,23], [22,21]],
+  [[56,55,54], [53,52,51,50,49,48,47,46,45,44], [43,42,41]],
+  [[72,71,70], [69,68,67,66,65,64,63,62,61,60], [59,58,57]],
+  [[88,87,86], [85,84,83,82,81,80,79,78,77,76], [75,74,73]],
+];
+function isBoxKtnNum(num){ return (num>=1&&num<=10) || (num>=21&&num<=30); }
+function isBoxHoldNum(num){ return num>=73 && num<=88; } // 灰色＝ギリギリまで売らない
+
+// ─────────────────────────────────────────────
 //  状態
 // ─────────────────────────────────────────────
 var msalInstance = null;
@@ -643,8 +658,13 @@ function renderMap(){
   stg.textContent = '◆  S T A G E  ◆';
   wrap.appendChild(stg);
 
+  var boxTitle = document.createElement('div');
+  boxTitle.className = 'section-title';
+  boxTitle.innerHTML = '<hr><span>🟠 BOX指定席（太枠＝KTN確保：1〜10番・21〜30番）</span><hr>';
+  wrap.appendChild(boxTitle);
+  wrap.appendChild(renderBoxSection());
+
   var SECS = [
-    {title:'🟠 BOX指定席', bids:['BOX_F','BOX_N1','BOX_R','BOX_N2']},
     {title:'🟡 SS指定席（左→右：お・え・い・う・あ）', bids:['SS_OH','SS_E','SS_I','SS_U','SS_A']},
     {title:'🟢 S指定席', bids:['S_KI','S_KA']},
   ];
@@ -678,7 +698,14 @@ function renderBlock(blk){
   grid.className = 'seat-grid';
   grid.style.gridTemplateColumns = 'repeat('+blk.pr+',40px)';
   for(var i=0;i<blk.seats.length;i++){
-    var num = blk.seats[i];
+    grid.appendChild(buildSeatButton(blk, blk.seats[i]));
+  }
+  div.appendChild(grid);
+  return div;
+}
+
+// 座席ボタン1つ分を生成（renderBlock・renderBoxSection共通）
+function buildSeatButton(blk, num){
     var sid = getSeatId(blk,num);
     var btn = document.createElement('button');
     btn.dataset.sid = sid;
@@ -755,10 +782,57 @@ function renderBlock(blk){
         })(blk,num,sid,btn);
       }
     }
-    grid.appendChild(btn);
+    return btn;
+}
+
+// ─────────────────────────────────────────────
+//  BOX席：印刷用座席マップに合わせた物理レイアウトで描画
+// ─────────────────────────────────────────────
+function renderBoxSection(){
+  var wrap = document.createElement('div');
+  wrap.style.background='white';
+  wrap.style.borderRadius='10px';
+  wrap.style.padding='16px 12px';
+  wrap.style.boxShadow='0 1px 6px rgba(0,0,0,.06)';
+  wrap.style.overflowX='auto';
+
+  for(var r=0;r<BOX_ROWS.length;r++){
+    var rowDiv = document.createElement('div');
+    rowDiv.style.display='flex';
+    rowDiv.style.justifyContent='center';
+    rowDiv.style.gap='16px';
+    rowDiv.style.marginBottom='6px';
+    var groups = BOX_ROWS[r];
+    for(var g=0;g<groups.length;g++){
+      var groupDiv = document.createElement('div');
+      groupDiv.style.display='flex';
+      groupDiv.style.gap='3px';
+      var seats = groups[g];
+      for(var i=0;i<seats.length;i++){
+        var num = seats[i];
+        var blk = {id:'BOX', type:'box', role: isBoxKtnNum(num)?'ktn':'pg'};
+        var btn = buildSeatButton(blk, num);
+        if(isBoxHoldNum(num)){
+          btn.style.outline = '2px dashed #9E9E9E';
+          btn.style.outlineOffset = '-2px';
+          btn.title = (btn.title||'') + '（ギリギリまで保留）';
+        }
+        groupDiv.appendChild(btn);
+      }
+      rowDiv.appendChild(groupDiv);
+    }
+    wrap.appendChild(rowDiv);
   }
-  div.appendChild(grid);
-  return div;
+
+  var note = document.createElement('div');
+  note.style.textAlign='center';
+  note.style.fontSize='.72rem';
+  note.style.color='#999';
+  note.style.marginTop='8px';
+  note.textContent = '※点線の座席（73〜88番）はギリギリまで売らない席です';
+  wrap.appendChild(note);
+
+  return wrap;
 }
 
 function updateStats(){
@@ -1317,6 +1391,8 @@ async function doSearch(){
       +'<p style="margin-top:10px;font-size:.82rem;color:#888;padding:0 4px">'+res.value.length+'件見つかりました</p>';
   }catch(e){
     wrap.innerHTML='<div class="s-results"><div class="no-r">検索エラー: '+escapeHtml(e.message)+'</div></div>';
+  }finally{
+    hideLoad();
   }
 }
 
