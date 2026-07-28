@@ -388,9 +388,9 @@ function escapeHtml(str){
 }
 // 座席ボタン内に「ラベル＋座席番号」を2段で表示（PG配分済み席の番号表記用）
 function stackedSeatLabel(main, num){
-  return '<span style="display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;width:100%">'
-    +'<span>'+escapeHtml(main)+'</span>'
-    +'<span style="font-size:.62em;opacity:.65;margin-top:1px">'+escapeHtml(num)+'</span>'
+  return '<span style="display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;width:100%">'
+    +'<span style="font-size:.85em">'+escapeHtml(main)+'</span>'
+    +'<span style="font-size:.95em;opacity:.85;margin-top:1px;font-weight:bold">'+escapeHtml(num)+'</span>'
     +'</span>';
 }
 
