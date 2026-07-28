@@ -1142,6 +1142,8 @@ async function saveSeat(){
   var tel    = document.getElementById('inp-tel').value.trim();
   var staffEl = document.getElementById('sel-staff');
   var staffV = staffEl.value;
+  var memoEl = document.getElementById('inp-memo');
+  var memoV  = memoEl ? memoEl.value.trim() : '';
   var err    = document.getElementById('err-msg');
   err.textContent='';
   if(!name){err.textContent='購入者名を入力してください';return;}
@@ -1189,6 +1191,7 @@ async function saveSeat(){
       setF(f,'電話番号', useTel);
       setF(f,'席種', getSeatType(t.blk));
       setF(f,'受付', useStaff);
+      setF(f,'メモ', memoV);
       // 返却済・キャンセル済の席はPATCHで上書き（重複防止）
       if(soldMap[t.sid] && (soldMap[t.sid].name==='返却済' || soldMap[t.sid].name==='キャンセル済')){
         await graph(LIST_URL+'/items/'+soldMap[t.sid].itemId,'PATCH',{fields:f});
