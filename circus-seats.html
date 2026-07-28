@@ -187,7 +187,7 @@ body.sel-open #seat-map{padding-bottom:90px}
 <div id="login-screen">
   <div class="login-logo">🎪</div>
   <div class="login-title">せきとりくん</div>
-  <div class="login-sub">Ver.0728.1300（最終評価版）</div>
+  <div class="login-sub">Ver.0728.1344</div>
   <button id="btn-login" onclick="login()">ログイン</button>
   <div id="login-err"></div>
 </div>
@@ -196,7 +196,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">せきとりくん Ver.0728.1300（最終評価版）</span>
+      <span class="hdr-title">せきとりくん Ver.0728.1344（最終評価版v2）</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -236,7 +236,7 @@ body.sel-open #seat-map{padding-bottom:90px}
     <div class="search-box">
       <div class="form-group">
         <label>購入者名で検索</label>
-        <input type="text" id="q-name" placeholder="例：かなや" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="text" id="q-name" placeholder="例：えどたろう" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <div class="form-group">
         <label>電話番号で検索</label>
@@ -273,12 +273,12 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>購入者名 <span style="color:red">*</span></label>
-        <input type="text" id="inp-name" placeholder="かなやたろう" autocomplete="off">
+        <input type="text" id="inp-name" placeholder="山田 太郎" autocomplete="off">
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
-        <input type="tel" id="inp-tel" placeholder="09012345678" autocomplete="off">
-        <div class="hint">ハイフンなし半角数字</div>
+        <input type="tel" id="inp-tel" placeholder="090-1234-5678" autocomplete="off">
+        <div class="hint">ハイフンありで入力してください</div>
       </div>
       <div class="form-group">
         <label>受付 <span style="color:red">*</span></label>
@@ -647,7 +647,7 @@ async function onShowChange(){
 
 async function loadSeatData(){
   if(!showId) return;
-  showLoad('座席ば読み込み中ばい...');
+  showLoad('座席データ読み込み中...');
   try{
     var fld = colMap['公演ID']||'公演ID';
     var url = LIST_URL+'/items?$expand=fields&$filter=fields/'+fld+' eq \''+showId+'\'&$top=500';
@@ -790,27 +790,30 @@ function buildSeatButton(blk, num){
 }
 
 // ─────────────────────────────────────────────
-//  BOX席：印刷用座席マップに合わせた物理レイアウトで描画
+//  BOX席：印刷用座席マップに合わせた物理レイアウトで描画（横スクロール）
 // ─────────────────────────────────────────────
 function renderBoxSection(){
+  var outer = document.createElement('div');
+  outer.style.background='white';
+  outer.style.borderRadius='10px';
+  outer.style.padding='16px 12px';
+  outer.style.boxShadow='0 1px 6px rgba(0,0,0,.06)';
+  outer.style.overflowX='auto';
+
   var wrap = document.createElement('div');
-  wrap.style.background='white';
-  wrap.style.borderRadius='10px';
-  wrap.style.padding='16px 12px';
-  wrap.style.boxShadow='0 1px 6px rgba(0,0,0,.06)';
+  wrap.style.width='max-content';
+  wrap.style.margin='0 auto';
 
   for(var r=0;r<BOX_ROWS.length;r++){
     var rowDiv = document.createElement('div');
     rowDiv.style.display='flex';
-    rowDiv.style.flexWrap='wrap';
     rowDiv.style.justifyContent='center';
-    rowDiv.style.gap='16px 16px';
-    rowDiv.style.marginBottom='10px';
+    rowDiv.style.gap='16px';
+    rowDiv.style.marginBottom='6px';
     var groups = BOX_ROWS[r];
     for(var g=0;g<groups.length;g++){
       var groupDiv = document.createElement('div');
       groupDiv.style.display='flex';
-      groupDiv.style.flexWrap='wrap';
       groupDiv.style.gap='3px';
       var seats = groups[g];
       for(var i=0;i<seats.length;i++){
@@ -828,88 +831,90 @@ function renderBoxSection(){
     }
     wrap.appendChild(rowDiv);
   }
+  outer.appendChild(wrap);
 
   var note = document.createElement('div');
   note.style.textAlign='center';
   note.style.fontSize='.72rem';
   note.style.color='#999';
   note.style.marginTop='8px';
-  note.textContent = '※点線の座席（73〜88番）はギリギリまで売らない席';
-  wrap.appendChild(note);
+  note.textContent = '※点線の座席（73〜88番）はギリギリまで売らない席です';
+  outer.appendChild(note);
 
-  return wrap;
+  return outer;
 }
 
 // ─────────────────────────────────────────────
 //  SS席・S席：印刷用座席マップに合わせた物理レイアウトで描画（共通関数）
 //  rows: [ [{blk:'お',seats:[...]}, {blk:'え',seats:[...]}, ...], ... ]
 //  各blk名はBLOCKS配列のpfxと対応させて役割（KTN/PG）や座席IDを引く
+//  ブロックごとに1本の「縦の列」にして、その中で段を積み重ねる（PDFと同じ構造）
 // ─────────────────────────────────────────────
 function findBlockByPfx(pfx){
   for(var i=0;i<BLOCKS.length;i++){ if(BLOCKS[i].pfx===pfx) return BLOCKS[i]; }
   return null;
 }
+// rows（段ごと）のデータを、ブロックごとの列データに組み替える
+function transposeToColumns(rows){
+  var order = [];
+  var map = {};
+  for(var r=0;r<rows.length;r++){
+    for(var g=0;g<rows[r].length;g++){
+      var grp = rows[r][g];
+      if(!map[grp.blk]){ map[grp.blk]=[]; order.push(grp.blk); }
+      map[grp.blk].push(grp.seats);
+    }
+  }
+  return order.map(function(name){ return {blk:name, rowSeats:map[name]}; });
+}
 function renderNamedRowSection(rows){
+  var columns = transposeToColumns(rows);
+
+  var outer = document.createElement('div');
+  outer.style.background='white';
+  outer.style.borderRadius='10px';
+  outer.style.padding='16px 12px';
+  outer.style.boxShadow='0 1px 6px rgba(0,0,0,.06)';
+  outer.style.overflowX='auto';
+
   var wrap = document.createElement('div');
-  wrap.style.background='white';
-  wrap.style.borderRadius='10px';
-  wrap.style.padding='16px 12px';
-  wrap.style.boxShadow='0 1px 6px rgba(0,0,0,.06)';
-  wrap.style.borderRadius='10px';
-  wrap.style.padding='16px 12px';
-  wrap.style.boxShadow='0 1px 6px rgba(0,0,0,.06)';
+  wrap.style.display='flex';
+  wrap.style.gap='22px';
+  wrap.style.justifyContent='center';
+  wrap.style.width='max-content';
+  wrap.style.margin='0 auto';
 
-  // 見出しラベル（各ブロック名。一番幅の広い行を基準に幅をおおよそ合わせる）
-  var widest = {};
-  for(var r=0;r<rows.length;r++){
-    for(var g=0;g<rows[r].length;g++){
-      var grp = rows[r][g];
-      var w = grp.seats.length;
-      if(!widest[grp.blk] || w>widest[grp.blk]) widest[grp.blk]=w;
-    }
-  }
-  var headerRow = document.createElement('div');
-  headerRow.style.display='flex';
-  headerRow.style.flexWrap='wrap';
-  headerRow.style.justifyContent='center';
-  headerRow.style.gap='16px';
-  headerRow.style.marginBottom='8px';
-  for(var g=0;g<rows[0].length;g++){
-    var name = rows[0][g].blk;
-    var blkInfo = findBlockByPfx(name);
+  columns.forEach(function(col){
+    var blkInfo = findBlockByPfx(col.blk);
+    var colDiv = document.createElement('div');
+    colDiv.style.display='flex';
+    colDiv.style.flexDirection='column';
+    colDiv.style.alignItems='center';
+    colDiv.style.gap='6px';
+
     var lbl = document.createElement('div');
-    lbl.textContent = name;
-    lbl.style.width = (widest[name]*43)+'px';
-    lbl.style.textAlign = 'center';
+    lbl.textContent = col.blk;
     lbl.style.fontWeight = 'bold';
-    lbl.style.fontSize = '.85rem';
+    lbl.style.fontSize = '1rem';
+    lbl.style.marginBottom = '2px';
     lbl.style.color = blkInfo && blkInfo.role==='pg' ? '#6D28D9' : '#8B6914';
-    headerRow.appendChild(lbl);
-  }
-  wrap.appendChild(headerRow);
+    colDiv.appendChild(lbl);
 
-  for(var r=0;r<rows.length;r++){
-    var rowDiv = document.createElement('div');
-    rowDiv.style.display='flex';
-    rowDiv.style.flexWrap='wrap';
-    rowDiv.style.justifyContent='center';
-    rowDiv.style.gap='16px 16px';
-    rowDiv.style.marginBottom='10px';
-    for(var g=0;g<rows[r].length;g++){
-      var grp = rows[r][g];
-      var blkInfo = findBlockByPfx(grp.blk);
-      var groupDiv = document.createElement('div');
-      groupDiv.style.display='flex';
-      groupDiv.style.flexWrap='wrap';
-      groupDiv.style.gap='3px';
-      for(var i=0;i<grp.seats.length;i++){
-        groupDiv.appendChild(buildSeatButton(blkInfo, grp.seats[i]));
+    col.rowSeats.forEach(function(seats){
+      var rowDiv = document.createElement('div');
+      rowDiv.style.display='flex';
+      rowDiv.style.gap='3px';
+      for(var i=0;i<seats.length;i++){
+        rowDiv.appendChild(buildSeatButton(blkInfo, seats[i]));
       }
-      rowDiv.appendChild(groupDiv);
-    }
-    wrap.appendChild(rowDiv);
-  }
-  return wrap;
+      colDiv.appendChild(rowDiv);
+    });
+
+    wrap.appendChild(colDiv);
+  });
+
+  outer.appendChild(wrap);
+  return outer;
 }
 
 function updateStats(){
@@ -1112,7 +1117,7 @@ function openPgAllocModal(blk,num,sid){
 
 async function markAsReturned(){
   if(!selSeat) return;
-  showLoad('返却済みに変更中ばい...');
+  showLoad('返却済みに変更中...');
   try{
     var READONLY=['Author','Editor','Created','Modified','ID','GUID','ContentType'];
     function setR(f,k,v){var n=colMap[k]||k;if(READONLY.indexOf(n)<0)f[n]=v;}
@@ -1364,7 +1369,7 @@ async function saveSeat(){
 async function deleteSeat(){
   if(!selSeat||!soldMap[selSeat.sid]) return;
   if(!confirm(selSeat.sid+' の予約を取り消しますか？')) return;
-  showLoad('取り消し中...');
+  showLoad('取り消し中ばい...');
   try{
     var READONLY3=['Author','Editor','Created','Modified','ID','GUID','ContentType'];
     function setD(f,k,v){var n=colMap[k]||k;if(READONLY3.indexOf(n)<0)f[n]=v;}
@@ -1478,7 +1483,7 @@ async function doSearch(){
 // ─────────────────────────────────────────────
 function showLoad(msg){
   var el=document.getElementById('loading');
-  el.textContent=msg||'読み込み中...';
+  el.textContent=msg||'読み込みよるばい...';
   el.style.display='block';
 }
 function hideLoad(){document.getElementById('loading').style.display='none';}
