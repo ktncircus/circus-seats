@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎭 ワールドドリームサーカス 座席管理</title>
+<title>せきとりくん</title>
 <script src="./msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -60,7 +60,7 @@ header{background:linear-gradient(90deg,#1a2f5a,#2a4a8a);color:white;padding:0 2
 #seat-map-panel{display:block}
 #search-panel{display:none;padding:24px 20px}
 #seat-map{padding:20px;overflow-x:auto}
-.map-inner{min-width:980px}
+.map-inner{min-width:0}
 .stage-bar{background:linear-gradient(135deg,#FFD700,#FFA500);color:#3E1C00;
   text-align:center;padding:13px;font-size:1.1rem;font-weight:bold;border-radius:10px;
   margin-bottom:20px;letter-spacing:.15em;box-shadow:0 3px 12px rgba(255,180,0,.35)}
@@ -186,9 +186,9 @@ body.sel-open #seat-map{padding-bottom:90px}
 
 <div id="login-screen">
   <div class="login-logo">🎪</div>
-  <div class="login-title">ワールドドリームサーカス</div>
-  <div class="login-sub">座席管理システム</div>
-  <button id="btn-login" onclick="login()">Microsoft アカウントでログイン</button>
+  <div class="login-title">せきとりくん</div>
+  <div class="login-sub">Ver.0728.1300（最終評価版）</div>
+  <button id="btn-login" onclick="login()">ログイン</button>
   <div id="login-err"></div>
 </div>
 
@@ -196,7 +196,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">ワールドドリームサーカス　座席管理</span>
+      <span class="hdr-title">せきとりくん Ver.0728.1300（最終評価版）</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -236,11 +236,11 @@ body.sel-open #seat-map{padding-bottom:90px}
     <div class="search-box">
       <div class="form-group">
         <label>購入者名で検索</label>
-        <input type="text" id="q-name" placeholder="例：山田" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="text" id="q-name" placeholder="例：かなや" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <div class="form-group">
         <label>電話番号で検索</label>
-        <input type="tel" id="q-tel" placeholder="例：090-1234" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="tel" id="q-tel" placeholder="例：0901234" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <button id="btn-search" onclick="doSearch()">検索</button>
     </div>
@@ -273,12 +273,12 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>購入者名 <span style="color:red">*</span></label>
-        <input type="text" id="inp-name" placeholder="山田 太郎" autocomplete="off">
+        <input type="text" id="inp-name" placeholder="かなやたろう" autocomplete="off">
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
-        <input type="tel" id="inp-tel" placeholder="090-1234-5678" autocomplete="off">
-        <div class="hint">ハイフンありで入力してください</div>
+        <input type="tel" id="inp-tel" placeholder="09012345678" autocomplete="off">
+        <div class="hint">ハイフンなし半角数字</div>
       </div>
       <div class="form-group">
         <label>受付 <span style="color:red">*</span></label>
@@ -397,7 +397,7 @@ function stackedSeatLabel(main, num){
 // ─────────────────────────────────────────────
 //  座席定義（全席）
 //  role: 'ktn'=自社販売枠  'pg'=プレイガイド枠
-//  会場レイアウト順（左→右）：き/お/え/BOX/い/う/あ/か
+//  会場レイアウト順（左→右）：き/お/え/BOX/う/い/あ/か
 // ─────────────────────────────────────────────
 var BLOCKS = [
   // BOX（ステージ最前方）
@@ -405,9 +405,9 @@ var BLOCKS = [
   {id:'BOX_N1',label:'11〜20番（PG）',        type:'box', role:'pg',  seats:rng(11,20), pr:10},
   {id:'BOX_R', label:'後列 21〜30番（KTN）',  type:'box', role:'ktn', seats:rng(21,30), pr:10},
   {id:'BOX_N2',label:'31〜88番（PG）',        type:'box', role:'pg',  seats:rng(31,88), pr:10},
-  // SS席（左→右：お・え・い(PG)・う(PG)・あ）
+  // SS席（左→右：お・え・う(PG)・い(PG)・あ）※PDF実測により順序修正
   {id:'SS_OH', label:'おブロック（KTN 33席）', type:'ss', role:'ktn', seats:rng(1,33), pr:6, pfx:'お'},
-  {id:'SS_E',  label:'えブロック（KTN 63席）', type:'ss', role:'ktn', seats:rng(1,63), pr:9, pfx:'え'},
+  {id:'SS_E',  label:'えブロック（KTN 65席）', type:'ss', role:'ktn', seats:rng(1,65), pr:9, pfx:'え'},
   {id:'SS_I',  label:'いブロック（PG  68席）', type:'ss', role:'pg',  seats:rng(1,68), pr:9, pfx:'い'},
   {id:'SS_U',  label:'うブロック（PG  63席）', type:'ss', role:'pg',  seats:rng(1,63), pr:9, pfx:'う'},
   {id:'SS_A',  label:'あブロック（KTN 33席）', type:'ss', role:'ktn', seats:rng(1,33), pr:6, pfx:'あ'},
@@ -441,6 +441,37 @@ var BOX_ROWS = [
 ];
 function isBoxKtnNum(num){ return (num>=1&&num<=10) || (num>=21&&num<=30); }
 function isBoxHoldNum(num){ return num>=73 && num<=88; } // 灰色＝ギリギリまで売らない
+
+// ─────────────────────────────────────────────
+//  SS席：印刷用座席マップ（SS席座席マップ.pdf）に合わせた物理配置
+//  左→右：お・え・う・い・あ（PDF実測。従来コードの い・う の並びが逆だったため修正）
+//  各行は{blk:ブロック名, seats:[...]}の配列。BLOCKS配列のpfxと対応させてブロック情報を引く
+// ─────────────────────────────────────────────
+var SS_ROWS = [
+  [{blk:'お',seats:[3,2,1]},          {blk:'え',seats:[6,5,4,3,2,1]},                       {blk:'う',seats:[6,5,4,3,2,1]},                       {blk:'い',seats:[6,5,4,3,2,1]},                          {blk:'あ',seats:[3,2,1]}],
+  [{blk:'お',seats:[7,6,5,4]},        {blk:'え',seats:[13,12,11,10,9,8,7]},                 {blk:'う',seats:[13,12,11,10,9,8,7]},                 {blk:'い',seats:[13,12,11,10,9,8,7]},                    {blk:'あ',seats:[7,6,5,4]}],
+  [{blk:'お',seats:[11,10,9,8]},      {blk:'え',seats:[21,20,19,18,17,16,15,14]},           {blk:'う',seats:[21,20,19,18,17,16,15,14]},           {blk:'い',seats:[21,20,19,18,17,16,15,14]},              {blk:'あ',seats:[11,10,9,8]}],
+  [{blk:'お',seats:[15,14,13,12]},    {blk:'え',seats:[29,28,27,26,25,24,23,22]},           {blk:'う',seats:[29,28,27,26,25,24,23,22]},           {blk:'い',seats:[29,28,27,26,25,24,23,22]},              {blk:'あ',seats:[15,14,13,12]}],
+  [{blk:'お',seats:[19,18,17,16]},    {blk:'え',seats:[37,36,35,34,33,32,31,30]},           {blk:'う',seats:[37,36,35,34,33,32,31,30]},           {blk:'い',seats:[37,36,35,34,33,32,31,30]},              {blk:'あ',seats:[19,18,17,16]}],
+  [{blk:'お',seats:[23,22,21,20]},    {blk:'え',seats:[45,44,43,42,41,40,39,38]},           {blk:'う',seats:[45,44,43,42,41,40,39,38]},           {blk:'い',seats:[45,44,43,42,41,40,39,38]},              {blk:'あ',seats:[23,22,21,20]}],
+  [{blk:'お',seats:[28,27,26,25,24]}, {blk:'え',seats:[53,52,51,50,49,48,47,46]},           {blk:'う',seats:[53,52,51,50,49,48,47,46]},           {blk:'い',seats:[54,53,52,51,50,49,48,47,46]},           {blk:'あ',seats:[28,27,26,25,24]}],
+  [{blk:'お',seats:[33,32,31,30,29]}, {blk:'え',seats:[65,64,63,62,61,60,59,58,57,56,55,54]},{blk:'う',seats:[63,62,61,60,59,58,57,56,55,54]},     {blk:'い',seats:[68,67,66,65,64,63,62,61,60,59,58,57,56,55]},{blk:'あ',seats:[33,32,31,30,29]}],
+];
+
+// ─────────────────────────────────────────────
+//  S席：印刷用座席マップ（S席座席マップ.pdf）に合わせた物理配置
+//  左→右：き・か
+// ─────────────────────────────────────────────
+var S_ROWS = [
+  [{blk:'き',seats:[6,5,4,3,2,1]},                     {blk:'か',seats:[1,2,3,4,5,6]}],
+  [{blk:'き',seats:[12,11,10,9,8,7]},                  {blk:'か',seats:[7,8,9,10,11,12]}],
+  [{blk:'き',seats:[20,19,18,17,16,15,14,13]},         {blk:'か',seats:[13,14,15,16,17,18,19,20]}],
+  [{blk:'き',seats:[28,27,26,25,24,23,22,21]},         {blk:'か',seats:[21,22,23,24,25,26,27,28]}],
+  [{blk:'き',seats:[36,35,34,33,32,31,30,29]},         {blk:'か',seats:[29,30,31,32,33,34,35,36]}],
+  [{blk:'き',seats:[44,43,42,41,40,39,38,37]},         {blk:'か',seats:[37,38,39,40,41,42,43,44]}],
+  [{blk:'き',seats:[52,51,50,49,48,47,46,45]},         {blk:'か',seats:[45,46,47,48,49,50,51,52]}],
+  [{blk:'き',seats:[66,65,64,63,62,61,60,59,58,57,56,55,54,53]},{blk:'か',seats:[53,54,55,56,57,58,59,60,61,62,63,64,65,66]}],
+];
 
 // ─────────────────────────────────────────────
 //  状態
@@ -616,7 +647,7 @@ async function onShowChange(){
 
 async function loadSeatData(){
   if(!showId) return;
-  showLoad('座席データ読み込み中...');
+  showLoad('座席ば読み込み中ばい...');
   try{
     var fld = colMap['公演ID']||'公演ID';
     var url = LIST_URL+'/items?$expand=fields&$filter=fields/'+fld+' eq \''+showId+'\'&$top=500';
@@ -655,7 +686,7 @@ function renderMap(){
 
   var stg = document.createElement('div');
   stg.className = 'stage-bar';
-  stg.textContent = '◆  S T A G E  ◆';
+  stg.textContent = '◆  ステージ  ◆';
   wrap.appendChild(stg);
 
   var boxTitle = document.createElement('div');
@@ -664,47 +695,20 @@ function renderMap(){
   wrap.appendChild(boxTitle);
   wrap.appendChild(renderBoxSection());
 
-  var SECS = [
-    {title:'🟡 SS指定席（左→右：お・え・い・う・あ）', bids:['SS_OH','SS_E','SS_I','SS_U','SS_A']},
-    {title:'🟢 S指定席', bids:['S_KI','S_KA']},
-  ];
+  var ssTitle = document.createElement('div');
+  ssTitle.className = 'section-title';
+  ssTitle.innerHTML = '<hr><span>🟡 SS指定席（左→右：お・え・う・い・あ）</span><hr>';
+  wrap.appendChild(ssTitle);
+  wrap.appendChild(renderNamedRowSection(SS_ROWS));
 
-  for(var s=0;s<SECS.length;s++){
-    var sec = SECS[s];
-    var ti = document.createElement('div');
-    ti.className = 'section-title';
-    ti.innerHTML = '<hr><span>'+sec.title+'</span><hr>';
-    wrap.appendChild(ti);
-    var row = document.createElement('div');
-    row.className = 'block-row';
-    for(var b=0;b<sec.bids.length;b++){
-      var blk = null;
-      for(var k=0;k<BLOCKS.length;k++){if(BLOCKS[k].id===sec.bids[b]){blk=BLOCKS[k];break;}}
-      if(blk) row.appendChild(renderBlock(blk));
-    }
-    wrap.appendChild(row);
-  }
+  var sTitle = document.createElement('div');
+  sTitle.className = 'section-title';
+  sTitle.innerHTML = '<hr><span>🟢 S指定席（左→右：き・か）</span><hr>';
+  wrap.appendChild(sTitle);
+  wrap.appendChild(renderNamedRowSection(S_ROWS));
 }
 
-function renderBlock(blk){
-  var div = document.createElement('div');
-  div.className = 'block';
-  var h = document.createElement('div');
-  var cls = blk.role==='pg' ? 'pg' : ('ktn-'+blk.type);
-  h.className = 'block-name '+cls;
-  h.textContent = blk.label;
-  div.appendChild(h);
-  var grid = document.createElement('div');
-  grid.className = 'seat-grid';
-  grid.style.gridTemplateColumns = 'repeat('+blk.pr+',40px)';
-  for(var i=0;i<blk.seats.length;i++){
-    grid.appendChild(buildSeatButton(blk, blk.seats[i]));
-  }
-  div.appendChild(grid);
-  return div;
-}
-
-// 座席ボタン1つ分を生成（renderBlock・renderBoxSection共通）
+// 座席ボタン1つ分を生成（renderBoxSection・renderNamedRowSection共通）
 function buildSeatButton(blk, num){
     var sid = getSeatId(blk,num);
     var btn = document.createElement('button');
@@ -794,18 +798,19 @@ function renderBoxSection(){
   wrap.style.borderRadius='10px';
   wrap.style.padding='16px 12px';
   wrap.style.boxShadow='0 1px 6px rgba(0,0,0,.06)';
-  wrap.style.overflowX='auto';
 
   for(var r=0;r<BOX_ROWS.length;r++){
     var rowDiv = document.createElement('div');
     rowDiv.style.display='flex';
+    rowDiv.style.flexWrap='wrap';
     rowDiv.style.justifyContent='center';
-    rowDiv.style.gap='16px';
-    rowDiv.style.marginBottom='6px';
+    rowDiv.style.gap='16px 16px';
+    rowDiv.style.marginBottom='10px';
     var groups = BOX_ROWS[r];
     for(var g=0;g<groups.length;g++){
       var groupDiv = document.createElement('div');
       groupDiv.style.display='flex';
+      groupDiv.style.flexWrap='wrap';
       groupDiv.style.gap='3px';
       var seats = groups[g];
       for(var i=0;i<seats.length;i++){
@@ -829,9 +834,81 @@ function renderBoxSection(){
   note.style.fontSize='.72rem';
   note.style.color='#999';
   note.style.marginTop='8px';
-  note.textContent = '※点線の座席（73〜88番）はギリギリまで売らない席です';
+  note.textContent = '※点線の座席（73〜88番）はギリギリまで売らない席';
   wrap.appendChild(note);
 
+  return wrap;
+}
+
+// ─────────────────────────────────────────────
+//  SS席・S席：印刷用座席マップに合わせた物理レイアウトで描画（共通関数）
+//  rows: [ [{blk:'お',seats:[...]}, {blk:'え',seats:[...]}, ...], ... ]
+//  各blk名はBLOCKS配列のpfxと対応させて役割（KTN/PG）や座席IDを引く
+// ─────────────────────────────────────────────
+function findBlockByPfx(pfx){
+  for(var i=0;i<BLOCKS.length;i++){ if(BLOCKS[i].pfx===pfx) return BLOCKS[i]; }
+  return null;
+}
+function renderNamedRowSection(rows){
+  var wrap = document.createElement('div');
+  wrap.style.background='white';
+  wrap.style.borderRadius='10px';
+  wrap.style.padding='16px 12px';
+  wrap.style.boxShadow='0 1px 6px rgba(0,0,0,.06)';
+  wrap.style.borderRadius='10px';
+  wrap.style.padding='16px 12px';
+  wrap.style.boxShadow='0 1px 6px rgba(0,0,0,.06)';
+
+  // 見出しラベル（各ブロック名。一番幅の広い行を基準に幅をおおよそ合わせる）
+  var widest = {};
+  for(var r=0;r<rows.length;r++){
+    for(var g=0;g<rows[r].length;g++){
+      var grp = rows[r][g];
+      var w = grp.seats.length;
+      if(!widest[grp.blk] || w>widest[grp.blk]) widest[grp.blk]=w;
+    }
+  }
+  var headerRow = document.createElement('div');
+  headerRow.style.display='flex';
+  headerRow.style.flexWrap='wrap';
+  headerRow.style.justifyContent='center';
+  headerRow.style.gap='16px';
+  headerRow.style.marginBottom='8px';
+  for(var g=0;g<rows[0].length;g++){
+    var name = rows[0][g].blk;
+    var blkInfo = findBlockByPfx(name);
+    var lbl = document.createElement('div');
+    lbl.textContent = name;
+    lbl.style.width = (widest[name]*43)+'px';
+    lbl.style.textAlign = 'center';
+    lbl.style.fontWeight = 'bold';
+    lbl.style.fontSize = '.85rem';
+    lbl.style.color = blkInfo && blkInfo.role==='pg' ? '#6D28D9' : '#8B6914';
+    headerRow.appendChild(lbl);
+  }
+  wrap.appendChild(headerRow);
+
+  for(var r=0;r<rows.length;r++){
+    var rowDiv = document.createElement('div');
+    rowDiv.style.display='flex';
+    rowDiv.style.flexWrap='wrap';
+    rowDiv.style.justifyContent='center';
+    rowDiv.style.gap='16px 16px';
+    rowDiv.style.marginBottom='10px';
+    for(var g=0;g<rows[r].length;g++){
+      var grp = rows[r][g];
+      var blkInfo = findBlockByPfx(grp.blk);
+      var groupDiv = document.createElement('div');
+      groupDiv.style.display='flex';
+      groupDiv.style.flexWrap='wrap';
+      groupDiv.style.gap='3px';
+      for(var i=0;i<grp.seats.length;i++){
+        groupDiv.appendChild(buildSeatButton(blkInfo, grp.seats[i]));
+      }
+      rowDiv.appendChild(groupDiv);
+    }
+    wrap.appendChild(rowDiv);
+  }
   return wrap;
 }
 
@@ -856,7 +933,7 @@ function updateStats(){
   document.getElementById('stat-ss') .textContent='SS: '+ssSold+'/'+ss;
   document.getElementById('stat-s')  .textContent='S: '+sSold+'/'+sS;
   document.getElementById('stat-box').textContent='BOX: '+boxSold+'/'+box;
-  document.getElementById('stat-tot').textContent='KTN: '+(ssSold+sSold+boxSold)+'/215'+(pgIndSold>0?' PG返却→販売:'+pgIndSold:'');
+  document.getElementById('stat-tot').textContent='KTN: '+(ssSold+sSold+boxSold)+'/217'+(pgIndSold>0?' PG返却→販売:'+pgIndSold:'');
 }
 
 // ─────────────────────────────────────────────
@@ -1035,7 +1112,7 @@ function openPgAllocModal(blk,num,sid){
 
 async function markAsReturned(){
   if(!selSeat) return;
-  showLoad('返却済みに変更中...');
+  showLoad('返却済みに変更中ばい...');
   try{
     var READONLY=['Author','Editor','Created','Modified','ID','GUID','ContentType'];
     function setR(f,k,v){var n=colMap[k]||k;if(READONLY.indexOf(n)<0)f[n]=v;}
