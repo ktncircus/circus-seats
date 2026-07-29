@@ -112,8 +112,9 @@ header{background:linear-gradient(90deg,#1a2f5a,#2a4a8a);color:white;padding:0 2
 #sel-bar.open{display:flex}
 body.sel-open #seat-map{padding-bottom:90px}
 #sel-bar-info{font-size:1rem;font-weight:bold}
-#sel-bar-seats{font-size:.8rem;color:#8aa4d4;margin-top:3px;max-width:60%;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sel-bar-info-wrap{min-width:0;overflow:hidden}
+#sel-bar-seats{font-size:.8rem;color:#8aa4d4;margin-top:3px;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .sel-bar-btns{display:flex;gap:10px;flex-shrink:0}
 #btn-sel-ok{background:#FFD700;color:#1a2f5a;border:none;padding:10px 24px;
   border-radius:8px;font-size:.95rem;font-weight:bold;cursor:pointer;font-family:inherit}
@@ -187,7 +188,7 @@ body.sel-open #seat-map{padding-bottom:90px}
 <div id="login-screen">
   <div class="login-logo">🎪</div>
   <div class="login-title">せきとりくん</div>
-  <div class="login-sub">Ver.0728.1344</div>
+  <div class="login-sub">Ver.0729.1000</div>
   <button id="btn-login" onclick="login()">ログイン</button>
   <div id="login-err"></div>
 </div>
@@ -196,7 +197,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">せきとりくん Ver.0728.1344（最終評価版v2）</span>
+      <span class="hdr-title">せきとりくん（最終評価版v3）Ver.0729.1000</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -236,7 +237,7 @@ body.sel-open #seat-map{padding-bottom:90px}
     <div class="search-box">
       <div class="form-group">
         <label>購入者名で検索</label>
-        <input type="text" id="q-name" placeholder="例：えどたろう" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="text" id="q-name" placeholder="例：かなやたろう" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <div class="form-group">
         <label>電話番号で検索</label>
@@ -250,7 +251,7 @@ body.sel-open #seat-map{padding-bottom:90px}
 
 <!-- 複数選択バー（KTNのみ） -->
 <div id="sel-bar">
-  <div>
+  <div id="sel-bar-info-wrap">
     <div id="sel-bar-info">0席選択中</div>
     <div id="sel-bar-seats"></div>
   </div>
@@ -273,12 +274,12 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>購入者名 <span style="color:red">*</span></label>
-        <input type="text" id="inp-name" placeholder="山田 太郎" autocomplete="off">
+        <input type="text" id="inp-name" placeholder="かなやたろう" autocomplete="off">
       </div>
       <div class="form-group">
         <label>電話番号 <span style="color:red">*</span></label>
-        <input type="tel" id="inp-tel" placeholder="090-1234-5678" autocomplete="off">
-        <div class="hint">ハイフンありで入力してください</div>
+        <input type="tel" id="inp-tel" placeholder="09012345678" autocomplete="off">
+        <div class="hint">ハイフンなし半角数字</div>
       </div>
       <div class="form-group">
         <label>受付 <span style="color:red">*</span></label>
@@ -286,7 +287,7 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>メモ（任意）</label>
-        <textarea id="inp-memo" placeholder="備考・連絡事項など" rows="2"
+        <textarea id="inp-memo" placeholder="備考・連絡事項など（文字のみ。記号等は入力禁止）" rows="2"
           style="width:100%;padding:10px 13px;border:2px solid #e0e0e0;border-radius:8px;
           font-size:.9rem;font-family:inherit;resize:vertical;transition:border-color .15s"
           onfocus="this.style.borderColor='#2a4a8a'" onblur="this.style.borderColor='#e0e0e0'"></textarea>
@@ -838,7 +839,7 @@ function renderBoxSection(){
   note.style.fontSize='.72rem';
   note.style.color='#999';
   note.style.marginTop='8px';
-  note.textContent = '※点線の座席（73〜88番）はギリギリまで売らない席です';
+  note.textContent = '※点線の座席（73〜88番）はギリギリまで売らない席';
   outer.appendChild(note);
 
   return outer;
@@ -1369,7 +1370,7 @@ async function saveSeat(){
 async function deleteSeat(){
   if(!selSeat||!soldMap[selSeat.sid]) return;
   if(!confirm(selSeat.sid+' の予約を取り消しますか？')) return;
-  showLoad('取り消し中ばい...');
+  showLoad('取り消し中...');
   try{
     var READONLY3=['Author','Editor','Created','Modified','ID','GUID','ContentType'];
     function setD(f,k,v){var n=colMap[k]||k;if(READONLY3.indexOf(n)<0)f[n]=v;}
@@ -1483,7 +1484,7 @@ async function doSearch(){
 // ─────────────────────────────────────────────
 function showLoad(msg){
   var el=document.getElementById('loading');
-  el.textContent=msg||'読み込みよるばい...';
+  el.textContent=msg||'読み込み中...';
   el.style.display='block';
 }
 function hideLoad(){document.getElementById('loading').style.display='none';}
