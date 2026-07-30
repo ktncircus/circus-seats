@@ -187,8 +187,8 @@ body.sel-open #seat-map{padding-bottom:90px}
 
 <div id="login-screen">
   <div class="login-logo">🎪</div>
-  <div class="login-title">せきとりくん</div>
-  <div class="login-sub">Ver.0729.1000</div>
+  <div class="login-title">せきとりくん（テスト版）</div>
+  <div class="login-sub">Ver.0730.1000</div>
   <button id="btn-login" onclick="login()">ログイン</button>
   <div id="login-err"></div>
 </div>
@@ -197,7 +197,7 @@ body.sel-open #seat-map{padding-bottom:90px}
   <header>
     <div class="hdr-left">
       <span>🎭</span>
-      <span class="hdr-title">せきとりくん（最終評価版v3）Ver.0729.1000</span>
+      <span class="hdr-title">せきとりくん（最終評価版 R4）Ver.0730.1000</span>
     </div>
     <div class="hdr-right">
       <span id="user-name"></span>
@@ -237,11 +237,11 @@ body.sel-open #seat-map{padding-bottom:90px}
     <div class="search-box">
       <div class="form-group">
         <label>購入者名で検索</label>
-        <input type="text" id="q-name" placeholder="例：かなやたろう" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="text" id="q-name" placeholder="例：山田" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <div class="form-group">
         <label>電話番号で検索</label>
-        <input type="tel" id="q-tel" placeholder="例：0901234" onkeydown="if(event.key==='Enter')doSearch()">
+        <input type="tel" id="q-tel" placeholder="例：090-1234" onkeydown="if(event.key==='Enter')doSearch()">
       </div>
       <button id="btn-search" onclick="doSearch()">検索</button>
     </div>
@@ -287,7 +287,7 @@ body.sel-open #seat-map{padding-bottom:90px}
       </div>
       <div class="form-group">
         <label>メモ（任意）</label>
-        <textarea id="inp-memo" placeholder="備考・連絡事項など（文字のみ。記号等は入力禁止）" rows="2"
+        <textarea id="inp-memo" placeholder="備考・連絡事項など" rows="2"
           style="width:100%;padding:10px 13px;border:2px solid #e0e0e0;border-radius:8px;
           font-size:.9rem;font-family:inherit;resize:vertical;transition:border-color .15s"
           onfocus="this.style.borderColor='#2a4a8a'" onblur="this.style.borderColor='#e0e0e0'"></textarea>
@@ -345,27 +345,164 @@ const msalCfg = {
   cache:{cacheLocation:'sessionStorage'}
 };
 const SCOPES = ['https://graph.microsoft.com/Sites.ReadWrite.All'];
-const WD = ['日','月','火','水','木','金','土'];
 
 // ─────────────────────────────────────────────
-//  公演リスト（2026/11/21〜2027/1/31）
+//  公演リスト（暫定公演スケジュール2026年7月30日.csv 準拠）
+//  2026/11/20〜2027/1/31、全150公演。水曜と12/31は休演。
+//  ラベル末尾に「※予定」が付くものはデータ種別が「予測（パターン推定）」の公演（未確定）
 // ─────────────────────────────────────────────
-const SHOWS = (function(){
-  var list = [];
-  var e = new Date(2027,0,31);
-  for(var d = new Date(2026,10,21); d <= e; d.setDate(d.getDate()+1)){
-    var wd = d.getDay();
-    var ds = d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
-    var lb = p2(d.getMonth()+1)+'/'+p2(d.getDate())+'('+WD[wd]+')';
-    if(wd===5){ list.push({id:ds+'-1900',label:lb+' 19:00'}); }
-    else if(wd===6||wd===0){
-      list.push({id:ds+'-1400',label:lb+' 14:00'});
-      list.push({id:ds+'-1800',label:lb+' 18:00'});
-    }
-  }
-  return list;
-})();
-function p2(n){return String(n).padStart(2,'0');}
+const SHOWS = [
+  {id:'2026-11-20-1400',label:'11/20(金) 14:00'},
+  {id:'2026-11-20-1830',label:'11/20(金) 18:30'},
+  {id:'2026-11-21-1000',label:'11/21(土) 10:00'},
+  {id:'2026-11-21-1300',label:'11/21(土) 13:00'},
+  {id:'2026-11-21-1530',label:'11/21(土) 15:30'},
+  {id:'2026-11-22-1000',label:'11/22(日) 10:00'},
+  {id:'2026-11-22-1300',label:'11/22(日) 13:00'},
+  {id:'2026-11-22-1530',label:'11/22(日) 15:30'},
+  {id:'2026-11-23-1000',label:'11/23(月) 10:00'},
+  {id:'2026-11-23-1300',label:'11/23(月) 13:00'},
+  {id:'2026-11-23-1530',label:'11/23(月) 15:30'},
+  {id:'2026-11-24-1100',label:'11/24(火) 11:00'},
+  {id:'2026-11-24-1400',label:'11/24(火) 14:00'},
+  {id:'2026-11-26-1100',label:'11/26(木) 11:00'},
+  {id:'2026-11-26-1400',label:'11/26(木) 14:00'},
+  {id:'2026-11-27-1400',label:'11/27(金) 14:00'},
+  {id:'2026-11-27-1830',label:'11/27(金) 18:30'},
+  {id:'2026-11-28-1000',label:'11/28(土) 10:00'},
+  {id:'2026-11-28-1300',label:'11/28(土) 13:00'},
+  {id:'2026-11-28-1530',label:'11/28(土) 15:30'},
+  {id:'2026-11-29-1000',label:'11/29(日) 10:00'},
+  {id:'2026-11-29-1300',label:'11/29(日) 13:00'},
+  {id:'2026-11-29-1530',label:'11/29(日) 15:30'},
+  {id:'2026-11-30-1100',label:'11/30(月) 11:00'},
+  {id:'2026-11-30-1400',label:'11/30(月) 14:00'},
+  {id:'2026-12-01-1100',label:'12/01(火) 11:00'},
+  {id:'2026-12-01-1400',label:'12/01(火) 14:00'},
+  {id:'2026-12-03-1100',label:'12/03(木) 11:00'},
+  {id:'2026-12-03-1400',label:'12/03(木) 14:00'},
+  {id:'2026-12-04-1400',label:'12/04(金) 14:00'},
+  {id:'2026-12-04-1830',label:'12/04(金) 18:30'},
+  {id:'2026-12-05-1000',label:'12/05(土) 10:00'},
+  {id:'2026-12-05-1300',label:'12/05(土) 13:00'},
+  {id:'2026-12-05-1530',label:'12/05(土) 15:30'},
+  {id:'2026-12-06-1000',label:'12/06(日) 10:00'},
+  {id:'2026-12-06-1300',label:'12/06(日) 13:00'},
+  {id:'2026-12-06-1530',label:'12/06(日) 15:30'},
+  {id:'2026-12-07-1100',label:'12/07(月) 11:00'},
+  {id:'2026-12-07-1400',label:'12/07(月) 14:00'},
+  {id:'2026-12-08-1100',label:'12/08(火) 11:00'},
+  {id:'2026-12-08-1400',label:'12/08(火) 14:00'},
+  {id:'2026-12-10-1100',label:'12/10(木) 11:00'},
+  {id:'2026-12-10-1400',label:'12/10(木) 14:00'},
+  {id:'2026-12-11-1400',label:'12/11(金) 14:00'},
+  {id:'2026-12-11-1830',label:'12/11(金) 18:30'},
+  {id:'2026-12-12-1000',label:'12/12(土) 10:00'},
+  {id:'2026-12-12-1300',label:'12/12(土) 13:00'},
+  {id:'2026-12-12-1530',label:'12/12(土) 15:30'},
+  {id:'2026-12-13-1000',label:'12/13(日) 10:00'},
+  {id:'2026-12-13-1300',label:'12/13(日) 13:00'},
+  {id:'2026-12-13-1530',label:'12/13(日) 15:30'},
+  {id:'2026-12-14-1100',label:'12/14(月) 11:00'},
+  {id:'2026-12-14-1400',label:'12/14(月) 14:00'},
+  {id:'2026-12-15-1100',label:'12/15(火) 11:00'},
+  {id:'2026-12-15-1400',label:'12/15(火) 14:00'},
+  {id:'2026-12-17-1100',label:'12/17(木) 11:00'},
+  {id:'2026-12-17-1400',label:'12/17(木) 14:00'},
+  {id:'2026-12-18-1400',label:'12/18(金) 14:00'},
+  {id:'2026-12-18-1830',label:'12/18(金) 18:30'},
+  {id:'2026-12-19-1000',label:'12/19(土) 10:00　※予定'},
+  {id:'2026-12-19-1300',label:'12/19(土) 13:00　※予定'},
+  {id:'2026-12-19-1530',label:'12/19(土) 15:30　※予定'},
+  {id:'2026-12-20-1000',label:'12/20(日) 10:00　※予定'},
+  {id:'2026-12-20-1300',label:'12/20(日) 13:00　※予定'},
+  {id:'2026-12-20-1530',label:'12/20(日) 15:30　※予定'},
+  {id:'2026-12-21-1100',label:'12/21(月) 11:00　※予定'},
+  {id:'2026-12-21-1400',label:'12/21(月) 14:00　※予定'},
+  {id:'2026-12-22-1100',label:'12/22(火) 11:00　※予定'},
+  {id:'2026-12-22-1400',label:'12/22(火) 14:00　※予定'},
+  {id:'2026-12-24-1100',label:'12/24(木) 11:00'},
+  {id:'2026-12-24-1400',label:'12/24(木) 14:00'},
+  {id:'2026-12-25-1400',label:'12/25(金) 14:00'},
+  {id:'2026-12-25-1830',label:'12/25(金) 18:30'},
+  {id:'2026-12-26-1000',label:'12/26(土) 10:00'},
+  {id:'2026-12-26-1300',label:'12/26(土) 13:00'},
+  {id:'2026-12-26-1530',label:'12/26(土) 15:30'},
+  {id:'2026-12-27-1000',label:'12/27(日) 10:00'},
+  {id:'2026-12-27-1300',label:'12/27(日) 13:00'},
+  {id:'2026-12-27-1530',label:'12/27(日) 15:30'},
+  {id:'2026-12-28-1100',label:'12/28(月) 11:00'},
+  {id:'2026-12-28-1400',label:'12/28(月) 14:00'},
+  {id:'2026-12-29-1100',label:'12/29(火) 11:00'},
+  {id:'2026-12-29-1400',label:'12/29(火) 14:00'},
+  {id:'2026-12-30-1100',label:'12/30(水) 11:00'},
+  {id:'2026-12-30-1400',label:'12/30(水) 14:00'},
+  {id:'2027-01-01-1300',label:'01/01(金) 13:00'},
+  {id:'2027-01-01-1530',label:'01/01(金) 15:30'},
+  {id:'2027-01-02-1000',label:'01/02(土) 10:00'},
+  {id:'2027-01-02-1300',label:'01/02(土) 13:00'},
+  {id:'2027-01-02-1530',label:'01/02(土) 15:30'},
+  {id:'2027-01-03-1000',label:'01/03(日) 10:00'},
+  {id:'2027-01-03-1300',label:'01/03(日) 13:00'},
+  {id:'2027-01-03-1530',label:'01/03(日) 15:30'},
+  {id:'2027-01-04-1100',label:'01/04(月) 11:00'},
+  {id:'2027-01-04-1400',label:'01/04(月) 14:00'},
+  {id:'2027-01-05-1100',label:'01/05(火) 11:00'},
+  {id:'2027-01-05-1400',label:'01/05(火) 14:00'},
+  {id:'2027-01-07-1100',label:'01/07(木) 11:00'},
+  {id:'2027-01-07-1400',label:'01/07(木) 14:00'},
+  {id:'2027-01-08-1400',label:'01/08(金) 14:00'},
+  {id:'2027-01-08-1830',label:'01/08(金) 18:30'},
+  {id:'2027-01-09-1000',label:'01/09(土) 10:00'},
+  {id:'2027-01-09-1300',label:'01/09(土) 13:00'},
+  {id:'2027-01-09-1530',label:'01/09(土) 15:30'},
+  {id:'2027-01-10-1000',label:'01/10(日) 10:00'},
+  {id:'2027-01-10-1300',label:'01/10(日) 13:00'},
+  {id:'2027-01-10-1530',label:'01/10(日) 15:30'},
+  {id:'2027-01-11-1000',label:'01/11(月) 10:00'},
+  {id:'2027-01-11-1300',label:'01/11(月) 13:00'},
+  {id:'2027-01-11-1530',label:'01/11(月) 15:30'},
+  {id:'2027-01-12-1100',label:'01/12(火) 11:00'},
+  {id:'2027-01-12-1400',label:'01/12(火) 14:00'},
+  {id:'2027-01-14-1100',label:'01/14(木) 11:00'},
+  {id:'2027-01-14-1400',label:'01/14(木) 14:00'},
+  {id:'2027-01-15-1400',label:'01/15(金) 14:00'},
+  {id:'2027-01-15-1830',label:'01/15(金) 18:30'},
+  {id:'2027-01-16-1000',label:'01/16(土) 10:00'},
+  {id:'2027-01-16-1300',label:'01/16(土) 13:00'},
+  {id:'2027-01-16-1530',label:'01/16(土) 15:30'},
+  {id:'2027-01-17-1000',label:'01/17(日) 10:00'},
+  {id:'2027-01-17-1300',label:'01/17(日) 13:00'},
+  {id:'2027-01-17-1530',label:'01/17(日) 15:30'},
+  {id:'2027-01-18-1100',label:'01/18(月) 11:00　※予定'},
+  {id:'2027-01-18-1400',label:'01/18(月) 14:00　※予定'},
+  {id:'2027-01-19-1100',label:'01/19(火) 11:00　※予定'},
+  {id:'2027-01-19-1400',label:'01/19(火) 14:00　※予定'},
+  {id:'2027-01-21-1100',label:'01/21(木) 11:00　※予定'},
+  {id:'2027-01-21-1400',label:'01/21(木) 14:00　※予定'},
+  {id:'2027-01-22-1400',label:'01/22(金) 14:00　※予定'},
+  {id:'2027-01-22-1830',label:'01/22(金) 18:30　※予定'},
+  {id:'2027-01-23-1000',label:'01/23(土) 10:00　※予定'},
+  {id:'2027-01-23-1300',label:'01/23(土) 13:00　※予定'},
+  {id:'2027-01-23-1530',label:'01/23(土) 15:30　※予定'},
+  {id:'2027-01-24-1000',label:'01/24(日) 10:00　※予定'},
+  {id:'2027-01-24-1300',label:'01/24(日) 13:00　※予定'},
+  {id:'2027-01-24-1530',label:'01/24(日) 15:30　※予定'},
+  {id:'2027-01-25-1100',label:'01/25(月) 11:00　※予定'},
+  {id:'2027-01-25-1400',label:'01/25(月) 14:00　※予定'},
+  {id:'2027-01-26-1100',label:'01/26(火) 11:00　※予定'},
+  {id:'2027-01-26-1400',label:'01/26(火) 14:00　※予定'},
+  {id:'2027-01-28-1100',label:'01/28(木) 11:00　※予定'},
+  {id:'2027-01-28-1400',label:'01/28(木) 14:00　※予定'},
+  {id:'2027-01-29-1400',label:'01/29(金) 14:00　※予定'},
+  {id:'2027-01-29-1830',label:'01/29(金) 18:30　※予定'},
+  {id:'2027-01-30-1000',label:'01/30(土) 10:00　※予定'},
+  {id:'2027-01-30-1300',label:'01/30(土) 13:00　※予定'},
+  {id:'2027-01-30-1530',label:'01/30(土) 15:30　※予定'},
+  {id:'2027-01-31-1000',label:'01/31(日) 10:00　※予定'},
+  {id:'2027-01-31-1300',label:'01/31(日) 13:00　※予定'},
+  {id:'2027-01-31-1530',label:'01/31(日) 15:30　※予定'},
+];
 function p3(n){return String(n).padStart(3,'0');}
 function rng(s,e){return Array.from({length:e-s+1},function(_,i){return s+i;});}
 // SharePointの更新日時(UTC ISO文字列)を日本時間の表示用文字列に変換
@@ -1234,7 +1371,7 @@ async function bulkPgReturn(){
   selectedSeats.forEach(function(v){if(v.mode==='pg-return')targets.push(v);});
   if(targets.length===0) return;
   if(!confirm(targets.length+'席のPG配分を返却済みに変更しますか？')) return;
-  showLoad(targets.length+'席を返却済みに変更中...');
+  showLoad(targets.length+'席を返却済みに変更中ばい...');
   try{
     var READONLY_R=['Author','Editor','Created','Modified','ID','GUID','ContentType'];
     function setR2(f,k,v){var n=colMap[k]||k;if(READONLY_R.indexOf(n)<0)f[n]=v;}
@@ -1421,14 +1558,14 @@ async function doSearch(){
   var qTel  = document.getElementById('q-tel').value.trim();
   var wrap  = document.getElementById('search-results-wrap');
   if(!qName&&!qTel){wrap.innerHTML='<div class="s-results"><div class="no-r">購入者名または電話番号を入力してください</div></div>';return;}
-  wrap.innerHTML='<div class="s-results"><div class="no-r">検索中...</div></div>';
+  wrap.innerHTML='<div class="s-results"><div class="no-r">検索中ばい...</div></div>';
   try{
     var nf = colMap['購入者名']||'購入者名';
     var tf = colMap['電話番号'] ||'電話番号';
     var qnL = qName.toLowerCase();
     var qtL = qTel.toLowerCase();
     // 全件取得してクライアント側でフィルタ（contains検索）
-    showLoad('全件取得中...');
+    showLoad('全件取得中ばい...まっとって...');
     var allItems=[];
     var nextUrl=LIST_URL+'/items?$expand=fields&$top=500';
     while(nextUrl){
@@ -1484,7 +1621,7 @@ async function doSearch(){
 // ─────────────────────────────────────────────
 function showLoad(msg){
   var el=document.getElementById('loading');
-  el.textContent=msg||'読み込み中...';
+  el.textContent=msg||'読み込みよるばい...';
   el.style.display='block';
 }
 function hideLoad(){document.getElementById('loading').style.display='none';}
